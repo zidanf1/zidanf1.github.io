@@ -8,6 +8,11 @@
     src: url('../FONT/beachday.ttf') format('truetype');
 }
 
+@font-face {
+    font-family: 'katakana';
+    src: url('../FONT/katakana\ tfb.ttf') format('truetype');
+}
+
 body{
     height: 100vh;
 }
@@ -15,15 +20,35 @@ body{
     font-family: 'beach';
 }
 
-.font-japan{
+.font-hiragana{
     font-family: 'hiragana';
     color: #000;
     text-align: center;
 }
 
-#value .btn{
+.font-katakana{
+    font-family: 'katakana';
+    color: #000;
+    text-align: center;
+}
+
+#valueLetter .btn{
     position: relative;
     font-size: 16pt;
     width: 60px;
     height: 60px;
+}
+
+#tableContainer {
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    z-index: 1;
+    
+}
+#tableContainer table {
+    position: relative;
 }

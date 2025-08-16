@@ -49,18 +49,56 @@ document.addEventListener("DOMContentLoaded", function() {
         { latin: "t", hiragana: "n" },
     ];
 
+    const KatakanaLetter = [
+        { latin: "A", hiragana: "ア" },
+        { latin: "B", hiragana: "イ" },
+        { latin: "C", hiragana: "ウ" },
+        { latin: "D", hiragana: "エ" },
+        { latin: "E", hiragana: "オ" },
+        { latin: "F", hiragana: "カ" },
+        { latin: "G", hiragana: "キ" },
+        { latin: "H", hiragana: "ク" },
+        { latin: "I", hiragana: "ケ" },
+        { latin: "J", hiragana: "コ" },
+        { latin: "K", hiragana: "サ" },
+        { latin: "L", hiragana: "シ" },
+        { latin: "M", hiragana: "ス" },
+        { latin: "N", hiragana: "セ" },
+        { latin: "O", hiragana: "ソ" },
+        { latin: "P", hiragana: "タ" },
+        { latin: "Q", hiragana: "チ" },
+        { latin: "R", hiragana: "ツ" },
+        { latin: "S", hiragana: "テ" },
+        { latin: "T", hiragana: "ト" },
+        { latin: "U", hiragana: "ナ" },
+        { latin: "V", hiragana: "ニ" },
+        { latin: "W", hiragana: "ヌ" },
+        { latin: "X", hiragana: "ネ" },
+        { latin: "Y", hiragana: "ノ" },
+        { latin: "Z", hiragana: "ハ" }
+    ];
+
     // ambil elemen dengan id "next" dan tambahkan event listener
     const nextButton = document.getElementById("next");
     nextButton.addEventListener("click", function() {
         // ketika tombol next ditekan, jalankan fungsi gameRestart
-        gameRestart();
+        const japanLetter = window.location.hash
+        console.log("Current Hash:", japanLetter);
+        gameRestart(japanLetter);
     });
     
-    function gameRestart() {
+    function gameRestart(japanLatin) {
         const numbers = new Set();
 
         while (numbers.size < 4) {
-            numbers.add(Math.floor(Math.random() * HiraganaLetter.length));
+            if (japanLatin === "#hiragana") {
+                japanLatin = HiraganaLetter;
+            } else if (japanLatin === "#katakana") {
+                japanLatin = KatakanaLetter;
+            } else {
+                console.error("Invalid hash value. Use #hiragana or #katakana.");
+            }
+            numbers.add(Math.floor(Math.random() * japanLatin.length));
         }
         // Convert Set to Array and log it
         const uniqueNumbers = Array.from(numbers);
@@ -72,17 +110,27 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Selected Index:", selectedIndex);
 
         // ambil huruf hiragana berdasarkan index yang dipilih
-        const selectedHiragana = HiraganaLetter[selectedIndex];
+        const selectedHiragana = japanLatin[selectedIndex];
         console.log("Selected Hiragana:", selectedHiragana);
 
+        // menampilkan huruf latin di elemen dengan id "value"
+        const valueText = document.getElementById("value");
+
+        // jika japanlatin adalah "#hiragana", gunakan HiraganaLetter, jika "#katakana", gunakan KatakanaLetter
+
+        if (japanLatin === "#hiragana") {
+            japanLatin = HiraganaLetter;
+            // gunakan foreach untuk menampilkan 4 huruf hiragana yang ada di uniqueNumbers dalam button di "value"
+            valueText.innerHTML = uniqueNumbers.map(index => `<div class="btn btn-outline-dark mx-auto font-weight-bolder d-flex align-items-center justify-content-center" data-value="${HiraganaLetter[index].hiragana.toUpperCase()}">${HiraganaLetter[index].hiragana.toUpperCase()}</div>`).join("");            
+        } else if (japanLatin === "#katakana") {
+            japanLatin = KatakanaLetter;
+            valueText.innerHTML = uniqueNumbers.map(index => `<div class="btn btn-outline-dark mx-auto font-weight-bolder d-flex align-items-center justify-content-center" data-value="${KatakanaLetter[index].hiragana.toUpperCase()}">${KatakanaLetter[index].hiragana.toUpperCase()}</div>`).join("");            
+        }
+        
         // tampilkan huruf hiragana di elemen dengan id "japanText"
         const container = document.getElementById("japanText");
         container.innerHTML = selectedHiragana.latin
 
-        // menampilkan huruf latin di elemen dengan id "value"
-        const valueText = document.getElementById("value");
-        // gunakan foreach untuk menampilkan 4 huruf hiragana yang ada di uniqueNumbers dalam button di "value"
-        valueText.innerHTML = uniqueNumbers.map(index => `<div class="btn btn-outline-dark mx-auto font-weight-bolder d-flex align-items-center justify-content-center" data-value="${HiraganaLetter[index].hiragana.toUpperCase()}">${HiraganaLetter[index].hiragana.toUpperCase()}</div>`).join("");
 
         // buat event listener untuk setiap button di "value"
         const buttons = valueText.querySelectorAll("[data-value]");
@@ -93,13 +141,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // cek apakah nilai yang dipilih sama dengan huruf latin yang ditampilkan
                 if (selectedValue === selectedHiragana.hiragana.toUpperCase()) {
-                    alert("BENAR!");
+                    // ubah warna latar belakang tombol menjadi hijau
+                    this.classList.add("btn-success");
+                    this.classList.remove("btn-outline-dark");
                 } else {
-                    alert("Salah silahkan coba lagi!");
+                    // ubah warna latar belakang tombol menjadi merah
+                    this.classList.add("btn-danger");
+                    this.classList.remove("btn-outline-dark");
                 }
             });
         });
     }
 
-    gameRestart()
+    gameRestart("#hiragana");
 })
