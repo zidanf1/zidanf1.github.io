@@ -127,6 +127,25 @@ function displayTable() {
 
 }
 
+function changeLetterType(event) {
+    const target = event.target;
+    if (target.tagName === "A") {;
+        const letterType = target.getAttribute("href");
+        // Mengubah hash URL sesuai dengan jenis huruf yang dipilih
+        window.location.hash = letterType;
+        // Memanggil fungsi untuk menampilkan huruf Jepang sesuai jenis yang dipilih
+        japanLetter(letterType);
+        if (letterType === "#hiragana") {
+            target.classList.add("active");
+            document.querySelector('a[href="#katakana"]').classList.remove("active");
+        } else if (letterType === "#katakana") {
+            target.classList.add("active");
+            document.querySelector('a[href="#hiragana"]').classList.remove("active");
+        }
+    }
+}
+
+
 // saat halaman dimuat tampilkan hiragana
 document.addEventListener("DOMContentLoaded", () => {
     const submit = document.getElementById("next");

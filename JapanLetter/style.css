@@ -16,6 +16,10 @@
 body{
     height: 100vh;
 }
+
+#mainContainer {
+    z-index: 1;
+}
 .font-title{
     font-family: 'beach';
 }
@@ -41,14 +45,21 @@ body{
 
 #tableContainer {
     width: 100%;
-    height: 100%;
-    top: 50%;
+    height: 160%;
+    top: 80%;
     left: 50%;
     transform: translate(-50%, -50%);
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     
 }
 #tableContainer table {
     position: relative;
+}
+
+@media screen and (max-width: 330px) {
+    #mainContainer {
+        max-width: 100%;
+        padding: 0px 5px;
+    }
 }
