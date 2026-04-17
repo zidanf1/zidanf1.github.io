@@ -298,13 +298,14 @@
         <span></span>
       </div>
 
-      <!-- Rows -->
-      <div class="rows-wrap" id="rows-wrap">
-        <div class="empty-state" id="empty-state">
-          <div class="icon">📭</div>
-          Belum ada data.<br>Tap <b>+ Tambah Baris</b> untuk mulai.
-        </div>
+      <!-- Empty state (outside rows-wrap agar tidak ikut terhapus) -->
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="icon">📭</div>
+        Belum ada data.<br>Tap <b>+ Tambah Baris</b> untuk mulai.
       </div>
+
+      <!-- Rows -->
+      <div class="rows-wrap" id="rows-wrap"></div>
 
       <!-- Footer -->
       <div class="tbl-footer">
@@ -375,13 +376,8 @@
     const totalQty = rows.reduce((s, r) => s + (parseInt(r.qty) || 0), 0);
     document.getElementById('total-qty').textContent = totalQty;
 
-    if (rows.length === 0) {
-      wrap.innerHTML = '';
-      wrap.appendChild(empty);
-      empty.style.display = 'block';
-      return;
-    }
-    empty.style.display = 'none';
+    // Toggle empty state (element ada di luar rows-wrap, aman)
+    empty.style.display = rows.length === 0 ? 'block' : 'none';
 
     wrap.innerHTML = '';
     rows.forEach((row, i) => {
