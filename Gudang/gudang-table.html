@@ -11,10 +11,8 @@
     --bg: #f0f2f5;
     --white: #ffffff;
     --primary: #1a56db;
-    --primary-light: #e8f0fe;
     --primary-dark: #1240a8;
     --accent: #0e9f6e;
-    --accent-light: #e8faf3;
     --danger: #e02424;
     --danger-light: #fde8e8;
     --border: #d1d8e8;
@@ -42,227 +40,149 @@
     padding-bottom: 40px;
   }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .app-header {
     background: var(--header-bg);
-    padding: 18px 16px 14px;
+    padding: 16px 16px 12px;
     position: sticky; top: 0; z-index: 50;
     box-shadow: 0 2px 16px rgba(10,20,60,.25);
   }
   .app-title {
-    font-family: var(--font-mono);
-    font-size: 16px; font-weight: 600;
-    color: var(--header-text);
-    letter-spacing: -.3px;
-    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 16px; font-weight: 600;
+    color: var(--header-text); display: flex; align-items: center; gap: 8px;
   }
   .app-title .badge {
     font-size: 10px; font-weight: 600;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 20px;
-    padding: 2px 8px;
-    color: #a5c0ff;
-    letter-spacing: .5px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px; padding: 2px 8px; color: #a5c0ff; letter-spacing: .5px;
   }
-  .app-sub {
-    font-size: 11px; color: #7a8fc0;
-    margin-top: 3px;
-    font-family: var(--font-mono);
-  }
-  #save-status {
-    font-size: 10px; color: #5a9e8e;
-    margin-top: 2px;
-    font-family: var(--font-mono);
-    min-height: 14px;
-  }
+  .app-sub { font-size: 11px; color: #7a8fc0; margin-top: 3px; font-family: var(--font-mono); }
+  #save-status { font-size: 10px; color: #5a9e8e; margin-top: 2px; font-family: var(--font-mono); min-height: 14px; }
 
-  /* ── MAIN CONTAINER ── */
-  .main {
-    padding: 14px 12px 0;
-    max-width: 520px;
-    margin: 0 auto;
-  }
+  /* MAIN */
+  .main { padding: 14px 12px 0; max-width: 520px; margin: 0 auto; }
 
-  /* ── TABLE CARD ── */
   .card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    border: 1px solid var(--border);
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border);
   }
 
-  /* ── TABLE ── */
-  #capture-area {
-    background: var(--white);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
+  #capture-area { background: var(--white); border-radius: var(--radius); overflow: hidden; }
 
+  /* TABLE HEADER */
   .tbl-header {
     background: var(--header-bg);
-    display: grid;
-    grid-template-columns: 2fr 3fr 1.5fr 38px;
-    padding: 10px 8px;
-    gap: 4px;
+    display: grid; grid-template-columns: 2fr 3fr 1.5fr 38px;
+    padding: 10px 8px; gap: 4px;
   }
   .tbl-header span {
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 600;
-    color: #a5c0ff;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 0 4px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    color: #a5c0ff; letter-spacing: 1px; text-transform: uppercase; padding: 0 4px;
   }
   .tbl-header span:last-child { text-align: center; color: #5a7095; }
 
-  /* Rows */
-  .rows-wrap { max-height: 58vh; overflow-y: auto; }
+  /* ROWS */
+  .rows-wrap { max-height: 50vh; overflow-y: auto; }
   .rows-wrap::-webkit-scrollbar { width: 4px; }
   .rows-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
   .tbl-row {
-    display: grid;
-    grid-template-columns: 2fr 3fr 1.5fr 38px;
-    gap: 4px;
-    padding: 5px 8px;
+    display: grid; grid-template-columns: 2fr 3fr 1.5fr 38px;
+    gap: 4px; padding: 5px 8px;
     border-bottom: 1px solid var(--border);
-    align-items: center;
+    align-items: center; background: var(--white);
     animation: rowIn .18s ease;
-    background: var(--white);
-    transition: background .1s;
   }
   .tbl-row:nth-child(even) { background: var(--row-alt); }
-  @keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes rowIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
 
-  .tbl-row select,
-  .tbl-row input {
+  .tbl-row select, .tbl-row input {
     width: 100%; height: 36px;
-    border: 1.5px solid var(--border);
-    border-radius: 7px;
-    background: var(--white);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 0 8px;
+    border: 1.5px solid var(--border); border-radius: 7px;
+    background: var(--white); color: var(--text);
+    font-family: var(--font-mono); font-size: 13px; padding: 0 8px;
     transition: border .15s, box-shadow .15s;
-    -webkit-appearance: none;
-    appearance: none;
+    -webkit-appearance: none; appearance: none;
   }
   .tbl-row select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b96b0' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 24px;
-    cursor: pointer;
+    background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px; cursor: pointer;
   }
-  .tbl-row select:focus,
-  .tbl-row input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+  .tbl-row select:focus, .tbl-row input:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,.1);
   }
   .tbl-row input[type="number"] { text-align: center; }
   .tbl-row input::placeholder { color: var(--text-dim); }
 
   .del-btn {
-    width: 30px; height: 30px;
-    border: none; background: var(--danger-light);
-    color: var(--danger); border-radius: 7px;
-    font-size: 15px; cursor: pointer;
+    width: 30px; height: 30px; border: none;
+    background: var(--danger-light); color: var(--danger);
+    border-radius: 7px; font-size: 15px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background .15s, transform .1s;
-    margin: auto;
+    transition: background .15s, transform .1s; margin: auto;
   }
   .del-btn:active { transform: scale(.92); background: #fbb; }
 
-  /* Empty state */
+  /* EMPTY STATE */
   .empty-state {
-    padding: 40px 16px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
+    padding: 36px 16px; text-align: center; color: var(--text-dim); font-size: 13px;
   }
   .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
 
-  /* ── FOOTER INFO ── */
+  /* FOOTER */
   .tbl-footer {
-    padding: 8px 14px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--row-alt);
-    border-top: 1px solid var(--border);
+    padding: 8px 14px; display: flex; align-items: center; justify-content: space-between;
+    background: var(--row-alt); border-top: 1px solid var(--border);
   }
-  .tbl-footer .count {
-    font-family: var(--font-mono);
-    font-size: 11px; color: var(--text-mid);
-  }
+  .tbl-footer .count { font-family: var(--font-mono); font-size: 11px; color: var(--text-mid); }
   .tbl-footer .count b { color: var(--primary); }
-  .total-qty {
-    font-family: var(--font-mono);
-    font-size: 11px; color: var(--text-mid);
-  }
+  .total-qty { font-family: var(--font-mono); font-size: 11px; color: var(--text-mid); }
   .total-qty b { color: var(--accent); }
 
-  /* ── BUTTONS ── */
+  /* BUTTONS */
   .btn-group {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 14px;
-    padding: 0 0 4px;
+    gap: 10px; margin-top: 12px;
   }
   .btn {
-    height: 48px;
-    border: none; border-radius: var(--radius);
-    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    height: 48px; border: none; border-radius: var(--radius);
+    font-family: var(--font-body); font-size: 13px; font-weight: 600;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    gap: 8px; transition: all .15s;
-    letter-spacing: -.2px;
+    gap: 7px; transition: all .15s;
   }
-  .btn-add {
-    background: var(--primary);
-    color: white;
-    box-shadow: var(--shadow-btn);
-  }
+  .btn-add  { background: var(--primary); color: white; box-shadow: var(--shadow-btn); }
   .btn-add:active { background: var(--primary-dark); transform: scale(.97); }
 
-  .btn-save {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 2px 8px rgba(14,159,110,.22);
-  }
+  .btn-save { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(14,159,110,.22); }
   .btn-save:active { background: #0b8a5e; transform: scale(.97); }
 
-  .btn .icon { font-size: 18px; }
+  .btn-sort {
+    background: #fffbf0; color: #7a5500;
+    border: 1.5px solid #f0d888;
+    box-shadow: 0 2px 6px rgba(180,140,0,.10);
+  }
+  .btn-sort:active { background: #fff3b0; transform: scale(.97); }
 
-  /* ── CAPTURE OVERLAY ── */
+  .btn-wa { background: #25d366; color: white; box-shadow: 0 2px 8px rgba(37,211,102,.28); }
+  .btn-wa:active { background: #1da851; transform: scale(.97); }
+
+  .btn .icon { font-size: 16px; }
+
+  /* CAPTURE HEADER (only visible during screenshot) */
   .capture-header {
-    display: none;
-    background: var(--header-bg);
-    padding: 16px 14px;
-    flex-direction: column;
-    gap: 2px;
+    display: none; background: var(--header-bg);
+    padding: 14px; flex-direction: column; gap: 2px;
   }
-  .capture-header .ch-title {
-    font-family: var(--font-mono);
-    font-size: 14px; font-weight: 600;
-    color: var(--header-text);
-  }
-  .capture-header .ch-ts {
-    font-family: var(--font-mono);
-    font-size: 11px; color: #7a8fc0;
-  }
+  .capture-header .ch-title { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--header-text); }
+  .capture-header .ch-ts { font-family: var(--font-mono); font-size: 11px; color: #7a8fc0; }
 
-  /* ── TOAST ── */
+  /* TOAST */
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: #1a2b5e; color: #e2e8ff;
-    padding: 10px 22px; border-radius: 20px;
-    font-size: 13px; font-weight: 500;
-    box-shadow: 0 4px 20px rgba(10,20,60,.3);
-    z-index: 9999; opacity: 0; pointer-events: none;
-    transition: opacity .2s;
-    white-space: nowrap;
+    padding: 10px 22px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(10,20,60,.3); z-index: 9999;
+    opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap;
   }
   .toast.show { opacity: 1; }
 </style>
@@ -271,10 +191,7 @@
 
 <!-- HEADER -->
 <div class="app-header">
-  <div class="app-title">
-    📦 GUDANG TABLE
-    <span class="badge">STOK</span>
-  </div>
+  <div class="app-title">📦 GUDANG TABLE <span class="badge">STOK</span></div>
   <div class="app-sub">Data tersimpan otomatis · berlaku 24 jam</div>
   <div id="save-status"></div>
 </div>
@@ -282,32 +199,25 @@
 <!-- MAIN -->
 <div class="main">
   <div class="card">
-    <!-- Capture area (for screenshot) -->
     <div id="capture-area">
-      <!-- Header for image capture only -->
+
+      <!-- Only shown during screenshot -->
       <div class="capture-header" id="cap-header">
         <div class="ch-title">📦 GUDANG TABLE — Data Stok</div>
         <div class="ch-ts" id="cap-ts"></div>
       </div>
 
-      <!-- Column Headers -->
       <div class="tbl-header">
-        <span>RAK</span>
-        <span>LOT CODE</span>
-        <span>QTY</span>
-        <span></span>
+        <span>RAK</span><span>LOT CODE</span><span>QTY</span><span></span>
       </div>
 
-      <!-- Empty state (outside rows-wrap agar tidak ikut terhapus) -->
       <div class="empty-state" id="empty-state" style="display:none">
         <div class="icon">📭</div>
         Belum ada data.<br>Tap <b>+ Tambah Baris</b> untuk mulai.
       </div>
 
-      <!-- Rows -->
       <div class="rows-wrap" id="rows-wrap"></div>
 
-      <!-- Footer -->
       <div class="tbl-footer">
         <div class="count">Total: <b id="row-count">0</b> baris</div>
         <div class="total-qty">Total QTY: <b id="total-qty">0</b></div>
@@ -315,7 +225,7 @@
     </div>
   </div>
 
-  <!-- Buttons -->
+  <!-- Baris 1: Tambah + Simpan Gambar -->
   <div class="btn-group">
     <button class="btn btn-add" onclick="addRow()">
       <span class="icon">＋</span> Tambah Baris
@@ -324,26 +234,35 @@
       <span class="icon">🖼</span> Simpan Gambar
     </button>
   </div>
+
+  <!-- Baris 2: Urutkan RAK + Send WhatsApp -->
+  <div class="btn-group" style="margin-bottom:4px">
+    <button class="btn btn-sort" onclick="sortByRak()">
+      <span class="icon">↕️</span> Urutkan RAK
+    </button>
+    <button class="btn btn-wa" onclick="sendWhatsApp()">
+      <span class="icon">💬</span> Send WhatsApp
+    </button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── RAK OPTIONS ──
+  // RAK dropdown options: blank, A1-A6, B1-B6, C1-C6
   const RAK_OPTIONS = (() => {
     const opts = [''];
-    for (let l = 'A'; l <= 'C'; l = String.fromCharCode(l.charCodeAt(0) + 1)) {
+    for (let l = 'A'; l <= 'C'; l = String.fromCharCode(l.charCodeAt(0)+1))
       for (let n = 1; n <= 6; n++) opts.push(`${l}${n}`);
-    }
     return opts;
   })();
 
-  const STORAGE_KEY = 'gudang_table_data';
-  const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 jam
+  const STORAGE_KEY = 'gudang_table_v2';
+  const EXPIRY_MS   = 24 * 60 * 60 * 1000;
 
   let rows = [];
 
-  // ── LOAD ──
+  /* ── LOAD / SAVE ── */
   function loadData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -351,9 +270,9 @@
       const { data, ts } = JSON.parse(raw);
       if (Date.now() - ts < EXPIRY_MS) {
         rows = data;
-        const saved = new Date(ts);
+        const d = new Date(ts);
         document.getElementById('save-status').textContent =
-          `✓ Data dari ${saved.toLocaleDateString('id-ID')} ${saved.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}`;
+          `✓ Data dari ${d.toLocaleDateString('id-ID')} ${d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}`;
       } else {
         localStorage.removeItem(STORAGE_KEY);
         showToast('Data lama (>24 jam) dihapus otomatis');
@@ -362,136 +281,165 @@
   }
 
   function saveData() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data: rows, ts: Date.now() }));
-    } catch(e) {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ data: rows, ts: Date.now() })); }
+    catch(e) {}
   }
 
-  // ── RENDER ──
+  /* ── RENDER ── */
   function render() {
-    const wrap = document.getElementById('rows-wrap');
+    const wrap  = document.getElementById('rows-wrap');
     const empty = document.getElementById('empty-state');
+
     document.getElementById('row-count').textContent = rows.length;
+    document.getElementById('total-qty').textContent =
+      rows.reduce((s, r) => s + (parseInt(r.qty)||0), 0);
 
-    const totalQty = rows.reduce((s, r) => s + (parseInt(r.qty) || 0), 0);
-    document.getElementById('total-qty').textContent = totalQty;
-
-    // Toggle empty state (element ada di luar rows-wrap, aman)
     empty.style.display = rows.length === 0 ? 'block' : 'none';
-
     wrap.innerHTML = '';
+
     rows.forEach((row, i) => {
       const div = document.createElement('div');
       div.className = 'tbl-row';
       div.innerHTML = `
         <select onchange="setField(${i},'rak',this.value)">
-          ${RAK_OPTIONS.map(o => `<option value="${o}" ${row.rak===o?'selected':''}>${o || '—'}</option>`).join('')}
+          ${RAK_OPTIONS.map(o=>`<option value="${o}"${row.rak===o?' selected':''}>${o||'—'}</option>`).join('')}
         </select>
-        <input type="text" placeholder="e.g. LOT-2024" value="${escHtml(row.lot)}"
-          oninput="setField(${i},'lot',this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
-        <input type="number" placeholder="0" value="${row.qty}"
+        <input type="text" placeholder="e.g. LOT-2024" value="${esc(row.lot)}"
+          oninput="setField(${i},'lot',this.value)" autocomplete="off" spellcheck="false">
+        <input type="number" placeholder="0" value="${esc(row.qty)}"
           oninput="setField(${i},'qty',this.value)" min="0">
-        <button class="del-btn" onclick="deleteRow(${i})" title="Hapus">✕</button>
+        <button class="del-btn" onclick="deleteRow(${i})">✕</button>
       `;
       wrap.appendChild(div);
     });
   }
 
-  function escHtml(s) {
+  function esc(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // ── ACTIONS ──
+  /* ── CRUD ── */
   function addRow() {
-    rows.push({ rak: '', lot: '', qty: '' });
-    saveData();
-    render();
-    // Scroll to bottom
+    rows.push({ rak:'', lot:'', qty:'' });
+    saveData(); render();
     setTimeout(() => {
-      const wrap = document.getElementById('rows-wrap');
-      wrap.scrollTop = wrap.scrollHeight;
+      const w = document.getElementById('rows-wrap');
+      w.scrollTop = w.scrollHeight;
     }, 50);
   }
 
-  function deleteRow(i) {
-    rows.splice(i, 1);
-    saveData();
-    render();
-  }
+  function deleteRow(i) { rows.splice(i,1); saveData(); render(); }
 
   function setField(i, key, val) {
-    rows[i][key] = val;
-    saveData();
-    // Update totals only
-    const totalQty = rows.reduce((s, r) => s + (parseInt(r.qty) || 0), 0);
-    document.getElementById('total-qty').textContent = totalQty;
-    document.getElementById('row-count').textContent = rows.length;
+    rows[i][key] = val; saveData();
+    document.getElementById('total-qty').textContent =
+      rows.reduce((s,r) => s+(parseInt(r.qty)||0), 0);
   }
 
-  // ── SAVE AS IMAGE ──
+  /* ── SORT BY RAK ──
+     Urutan: A1 < A2 < A3 < A4 < A5 < A6 < B1 < … < C6, kosong paling bawah */
+  function sortByRak() {
+    if (rows.length === 0) { showToast('Tidak ada data untuk diurutkan!'); return; }
+    rows.sort((a, b) => {
+      const ai = RAK_OPTIONS.indexOf(a.rak);
+      const bi = RAK_OPTIONS.indexOf(b.rak);
+      return (ai <= 0 ? 9999 : ai) - (bi <= 0 ? 9999 : bi);
+    });
+    saveData(); render();
+    showToast('✓ Diurutkan berdasarkan RAK');
+  }
+
+  /* ── SEND WHATSAPP ──
+     Format:
+     UPDATE HARI, TGL BULAN TAHUN
+     
+     RAK A
+     1. LOTCODE  QTY
+     2. LOTCODE  QTY
+     ================
+     RAK B
+     1. LOTCODE  QTY
+     ================
+  */
+  function sendWhatsApp() {
+    if (rows.length === 0) { showToast('Tidak ada data untuk dikirim!'); return; }
+
+    const now   = new Date();
+    const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][now.getDay()];
+    const BULAN = ['Januari','Februari','Maret','April','Mei','Juni',
+                   'Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()];
+
+    // Group by RAK letter (A / B / C / ?)
+    const groups = {};
+    rows.forEach(r => {
+      const letter = (r.rak && r.rak.length > 0) ? r.rak[0] : '?';
+      if (!groups[letter]) groups[letter] = [];
+      groups[letter].push(r);
+    });
+
+    let msg = `UPDATE ${HARI}, ${now.getDate()} ${BULAN} ${now.getFullYear()}`;
+
+    const letters = Object.keys(groups).sort();
+    letters.forEach((letter, gi) => {
+      msg += `\n\nRAK ${letter}\n`;
+      msg += `====================\n`;
+      groups[letter].forEach((r, idx) => {
+        const lot = r.lot ? r.lot.trim() : '-';
+        const qty = r.qty !== '' ? r.qty : '0';
+        msg += `${idx + 1}. ${lot} ${qty}\n`;
+      });
+    });
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  /* ── SAVE AS IMAGE ── */
   async function saveAsImage() {
     if (rows.length === 0) { showToast('Tidak ada data untuk disimpan!'); return; }
 
-    // Build timestamp
     const now = new Date();
     const pad = n => String(n).padStart(2,'0');
-    const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const tsDisplay = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    const ts  = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const tsD = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-    // Show capture header
     const capHeader = document.getElementById('cap-header');
-    const rowsWrap = document.getElementById('rows-wrap');
-    document.getElementById('cap-ts').textContent = `Dicetak: ${tsDisplay}`;
-    capHeader.style.display = 'flex';
-    // Remove scroll limit for capture
-    const prevMaxH = rowsWrap.style.maxHeight;
-    rowsWrap.style.maxHeight = 'none';
-    rowsWrap.style.overflow = 'visible';
+    const rowsWrap  = document.getElementById('rows-wrap');
 
-    // Hide delete buttons
+    document.getElementById('cap-ts').textContent = `Dicetak: ${tsD}`;
+    capHeader.style.display = 'flex';
+    rowsWrap.style.maxHeight = 'none';
+    rowsWrap.style.overflow  = 'visible';
     document.querySelectorAll('.del-btn').forEach(b => b.style.display='none');
-    // Hide add col in header grid last span
     const thLast = document.querySelector('.tbl-header span:last-child');
-    if (thLast) thLast.style.display='none';
+    if (thLast) thLast.style.display = 'none';
 
     showToast('Memproses gambar…');
-
     try {
-      const area = document.getElementById('capture-area');
-      const canvas = await html2canvas(area, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
+      const canvas = await html2canvas(document.getElementById('capture-area'), {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false,
       });
+      const a = document.createElement('a');
+      a.download = `gudang_${ts}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      showToast(`✓ Tersimpan: gudang_${ts}.png`);
+    } catch(e) { showToast('Gagal menyimpan gambar'); }
 
-      const link = document.createElement('a');
-      link.download = `gudang_${ts}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('✓ Gambar tersimpan: gudang_' + ts + '.png');
-    } catch(e) {
-      showToast('Gagal menyimpan gambar');
-    }
-
-    // Restore
     capHeader.style.display = 'none';
-    rowsWrap.style.maxHeight = '58vh';
-    rowsWrap.style.overflow = 'auto';
+    rowsWrap.style.maxHeight = '50vh';
+    rowsWrap.style.overflow  = 'auto';
     document.querySelectorAll('.del-btn').forEach(b => b.style.display='');
-    if (thLast) thLast.style.display='';
+    if (thLast) thLast.style.display = '';
   }
 
-  // ── TOAST ──
-  let _toastTimer;
+  /* ── TOAST ── */
+  let _tt;
   function showToast(msg) {
     const el = document.getElementById('toast');
     el.textContent = msg; el.classList.add('show');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 2600);
   }
 
-  // ── INIT ──
   loadData();
   render();
 </script>
