@@ -1,0 +1,195 @@
+
+<h2 class="sr-only">Barcode scanner — input manual atau scan via kamera, hasil ditampilkan di bawah</h2>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+#wrap { padding: 1.25rem 0 1.5rem; font-family: var(--font-sans); }
+#input-row { display: flex; gap: 8px; align-items: stretch; }
+#input-row input { flex: 1; height: 40px; font-size: 15px; font-family: var(--font-mono); letter-spacing: 0.04em; padding: 0 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
+#input-row input:focus { outline: none; box-shadow: 0 0 0 2px #B5D4F4; }
+.act-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; white-space: nowrap; }
+.act-btn:hover { background: var(--color-background-secondary); }
+.act-btn:active { transform: scale(0.97); }
+.act-btn.primary { background: #378ADD; color: #fff; border-color: #185FA5; }
+.act-btn.primary:hover { background: #185FA5; }
+.act-btn.danger { background: #E24B4A; color: #fff; border-color: #A32D2D; }
+.act-btn.danger:hover { background: #A32D2D; }
+#cam-section { margin-top: 12px; }
+#reader-wrap { position: relative; width: 100%; border-radius: var(--border-radius-lg); overflow: hidden; border: 0.5px solid var(--color-border-secondary); background: #000; min-height: 220px; display: flex; align-items: center; justify-content: center; }
+#reader { width: 100%; }
+#aim { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.aim-box { width: 200px; height: 100px; position: relative; }
+.aim-box::before, .aim-box::after { content: ''; position: absolute; width: 28px; height: 28px; }
+.aim-box::before { top: 0; left: 0; border-top: 2.5px solid #64D97B; border-left: 2.5px solid #64D97B; }
+.aim-box::after { top: 0; right: 0; border-top: 2.5px solid #64D97B; border-right: 2.5px solid #64D97B; }
+.aim-inner::before, .aim-inner::after { content: ''; position: absolute; width: 28px; height: 28px; }
+.aim-inner::before { bottom: 0; left: 0; border-bottom: 2.5px solid #64D97B; border-left: 2.5px solid #64D97B; }
+.aim-inner::after { bottom: 0; right: 0; border-bottom: 2.5px solid #64D97B; border-right: 2.5px solid #64D97B; }
+.scan-bar { position: absolute; left: 0; right: 0; height: 2px; background: #64D97B; animation: scanbar 1.8s ease-in-out infinite; top: 0; }
+@keyframes scanbar { 0%,100%{top:0;opacity:0.4} 50%{top:100%;opacity:1} }
+#cam-status { font-size: 13px; color: var(--color-text-secondary); text-align: center; padding: 8px 0 0; }
+#result-section { margin-top: 1.25rem; }
+#result-box { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+#result-empty { text-align: center; color: var(--color-text-tertiary); font-size: 14px; padding: 1.5rem 0; }
+.result-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.result-row:last-child { border-bottom: none; padding-bottom: 0; }
+.result-idx { font-size: 12px; color: var(--color-text-tertiary); min-width: 22px; padding-top: 2px; }
+.result-val { font-family: var(--font-mono); font-size: 15px; color: var(--color-text-primary); flex: 1; word-break: break-all; letter-spacing: 0.03em; }
+.result-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.result-type { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #E6F1FB; color: #0C447C; border: 0.5px solid #B5D4F4; }
+.del-r { background: none; border: none; color: var(--color-text-tertiary); cursor: pointer; font-size: 16px; padding: 0 2px; line-height: 1; }
+.del-r:hover { color: #E24B4A; }
+#history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+#history-header span { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
+</style>
+
+<div id="wrap">
+  <div id="input-row">
+    <input type="text" id="barcodeInput" placeholder="Masukkan nomor barcode..." autocomplete="off" onkeydown="if(event.key==='Enter')submitManual()">
+    <button class="act-btn primary" onclick="submitManual()"><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i> Tambah</button>
+    <button class="act-btn" id="scanBtn" onclick="toggleCam()"><i class="ti ti-scan" style="font-size:16px" aria-hidden="true"></i> Scan Kamera</button>
+  </div>
+
+  <div id="cam-section" style="display:none;">
+    <div id="reader-wrap">
+      <div id="reader"></div>
+      <div id="aim"><div class="aim-box"><div class="aim-inner"></div><div class="scan-bar"></div></div></div>
+    </div>
+    <div id="cam-status">Arahkan kamera ke barcode...</div>
+  </div>
+
+  <div id="result-section">
+    <div id="result-box">
+      <div id="history-header">
+        <span>Hasil scan</span>
+        <button class="act-btn" style="height:28px;font-size:12px;padding:0 10px;" onclick="clearAll()"><i class="ti ti-trash" style="font-size:14px" aria-hidden="true"></i> Hapus semua</button>
+      </div>
+      <div id="result-list"><div id="result-empty"><i class="ti ti-barcode" style="font-size:28px;display:block;margin-bottom:6px;color:var(--color-border-primary)" aria-hidden="true"></i>Belum ada barcode</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script>
+  let results = [];
+  let codeReader = null;
+  let camActive = false;
+  let selectedDeviceId = null;
+
+  function submitManual() {
+    const inp = document.getElementById('barcodeInput');
+    const val = inp.value.trim();
+    if (!val) return;
+    addResult(val, 'Manual');
+    inp.value = '';
+    inp.focus();
+  }
+
+  function addResult(value, type) {
+    results.unshift({ value, type, time: new Date() });
+    renderResults();
+  }
+
+  function renderResults() {
+    const list = document.getElementById('result-list');
+    if (!results.length) {
+      list.innerHTML = '<div id="result-empty"><i class="ti ti-barcode" style="font-size:28px;display:block;margin-bottom:6px;color:var(--color-border-primary)" aria-hidden="true"></i>Belum ada barcode</div>';
+      return;
+    }
+    list.innerHTML = results.map((r, i) => {
+      const t = r.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return '<div class="result-row">' +
+        '<div class="result-idx">' + (results.length - i) + '</div>' +
+        '<div style="flex:1">' +
+          '<div class="result-val">' + escHtml(r.value) + '</div>' +
+          '<div class="result-meta"><span class="result-type">' + escHtml(r.type) + '</span> &nbsp;' + t + '</div>' +
+        '</div>' +
+        '<button class="del-r" onclick="removeResult(' + i + ')" title="Hapus"><i class="ti ti-x" aria-hidden="true"></i></button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function removeResult(i) {
+    results.splice(i, 1);
+    renderResults();
+  }
+
+  function clearAll() {
+    results = [];
+    renderResults();
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function toggleCam() {
+    if (camActive) {
+      stopCam();
+    } else {
+      startCam();
+    }
+  }
+
+  async function startCam() {
+    const sec = document.getElementById('cam-section');
+    const btn = document.getElementById('scanBtn');
+    sec.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-player-stop" style="font-size:16px" aria-hidden="true"></i> Stop Kamera';
+    btn.classList.add('danger');
+    setStatus('Meminta akses kamera...');
+
+    try {
+      if (!window.ZXing) { setStatus('Library belum siap, coba lagi.'); return; }
+      codeReader = new ZXing.BrowserMultiFormatReader();
+      const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+      if (!devices.length) { setStatus('Tidak ada kamera ditemukan.'); return; }
+      const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1];
+      selectedDeviceId = backCam.deviceId;
+
+      const vidEl = document.getElementById('reader');
+      vidEl.style.display = 'block';
+
+      camActive = true;
+      setStatus('Arahkan kamera ke barcode...');
+
+      codeReader.decodeFromVideoDevice(selectedDeviceId, 'reader', (result, err) => {
+        if (result) {
+          const val = result.getText();
+          const fmt = result.getBarcodeFormat ? ZXing.BarcodeFormat[result.getBarcodeFormat()] : 'Barcode';
+          if (!results.length || results[0].value !== val) {
+            addResult(val, fmt || 'Kamera');
+            setStatus('Berhasil: ' + val);
+            flashSuccess();
+            setTimeout(() => { if (camActive) setStatus('Arahkan kamera ke barcode berikutnya...'); }, 2000);
+          }
+        }
+      });
+    } catch(e) {
+      setStatus('Gagal: ' + (e.message || 'Cek izin kamera'));
+      stopCam();
+    }
+  }
+
+  function stopCam() {
+    if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
+    camActive = false;
+    document.getElementById('cam-section').style.display = 'none';
+    const btn = document.getElementById('scanBtn');
+    btn.innerHTML = '<i class="ti ti-scan" style="font-size:16px" aria-hidden="true"></i> Scan Kamera';
+    btn.classList.remove('danger');
+  }
+
+  function setStatus(msg) {
+    document.getElementById('cam-status').textContent = msg;
+  }
+
+  function flashSuccess() {
+    const rw = document.getElementById('reader-wrap');
+    rw.style.outline = '2px solid #64D97B';
+    setTimeout(() => { rw.style.outline = ''; }, 600);
+  }
+
+  document.getElementById('barcodeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitManual();
+  });
+</script>

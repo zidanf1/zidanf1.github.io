@@ -1,0 +1,497 @@
+
+<h2 class="sr-only">WMS dengan Scan Kamera — Sistem manajemen gudang dengan fitur scan barcode real-time menggunakan kamera perangkat</h2>
+<style>
+*{box-sizing:border-box}
+.tab-btn{flex:1;padding:9px 2px;border:none;border-bottom:2px solid transparent;background:none;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all .15s}
+.tab-btn.active{border-bottom-color:var(--color-text-info);color:var(--color-text-info);font-weight:500}
+.rack-cell{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 4px;text-align:center;cursor:pointer;transition:border-color .15s;font-size:11px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.rack-cell:hover{border-color:var(--color-border-primary)}
+.rack-cell.occupied{background:var(--color-background-success);border-color:var(--color-border-success);cursor:default}
+.rack-cell.selected{border-color:var(--color-border-info);background:var(--color-background-info)}
+.card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;margin-bottom:10px}
+.section-title{font-size:10px;color:var(--color-text-secondary);letter-spacing:.06em;text-transform:uppercase;margin:14px 0 7px}
+.input-field{width:100%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:13px;font-family:var(--font-mono);color:var(--color-text-primary)}
+.input-field:focus{outline:none;border-color:var(--color-border-info)}
+.btn-primary{background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:10px 16px;cursor:pointer;font-size:13px;font-family:var(--font-sans);font-weight:500;width:100%}
+.btn-secondary{background:none;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 12px;cursor:pointer;font-size:12px;font-family:var(--font-sans)}
+.btn-danger-sm{background:none;color:var(--color-text-danger);border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md);padding:3px 8px;cursor:pointer;font-size:10px;font-family:var(--font-sans)}
+.btn-success{background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success);border-radius:var(--border-radius-md);padding:10px 16px;cursor:pointer;font-size:13px;font-family:var(--font-sans);font-weight:500;width:100%}
+.cam-btn{width:42px;height:42px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cam-btn:hover{border-color:var(--color-border-info);background:var(--color-background-info)}
+.cam-btn svg{width:18px;height:18px;stroke:var(--color-text-secondary);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.cam-btn:hover svg{stroke:var(--color-text-info)}
+.scan-btn-in{background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:0 14px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;height:42px;font-family:var(--font-sans)}
+.scan-btn-out{background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success);border-radius:var(--border-radius-md);padding:0 14px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;height:42px;font-family:var(--font-sans)}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap}
+.item-row{padding:8px 0;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;text-align:center}
+.stat-val{font-size:22px;font-weight:500;line-height:1.2}
+.stat-lbl{font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em}
+.box-sel{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;transition:border-color .15s}
+.box-sel:hover{border-color:var(--color-border-secondary)}
+.box-sel.selected{border-color:var(--color-border-info);background:var(--color-background-info)}
+.mono{font-family:var(--font-mono)}
+
+.scanner-wrap{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:10px;}
+.scanner-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);}
+.scanner-body{position:relative;width:100%;background:#000;}
+#scanner-video{width:100%;display:block;max-height:220px;object-fit:cover;}
+.scan-line{position:absolute;left:10%;right:10%;height:2px;background:var(--color-background-info);animation:scanAnim 1.8s ease-in-out infinite;top:50%;border-radius:2px;}
+@keyframes scanAnim{0%,100%{top:20%}50%{top:80%}}
+.scan-corner{position:absolute;width:24px;height:24px;border-color:var(--color-border-info);border-style:solid;border-width:0;}
+.sc-tl{top:8%;left:8%;border-top-width:2px;border-left-width:2px;border-radius:2px 0 0 0;}
+.sc-tr{top:8%;right:8%;border-top-width:2px;border-right-width:2px;border-radius:0 2px 0 0;}
+.sc-bl{bottom:8%;left:8%;border-bottom-width:2px;border-left-width:2px;border-radius:0 0 0 2px;}
+.sc-br{bottom:8%;right:8%;border-bottom-width:2px;border-right-width:2px;border-radius:0 0 2px 0;}
+.scanner-status{padding:10px 14px;font-size:12px;color:var(--color-text-secondary);text-align:center;font-family:var(--font-mono);}
+.cam-select{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 8px;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:var(--font-sans);}
+</style>
+
+<div style="max-width:480px;margin:0 auto;padding:12px 16px 40px;">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;margin-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary);">
+    <div>
+      <span class="mono" style="font-weight:500;font-size:15px;">WMS</span>
+      <span style="font-size:11px;color:var(--color-text-secondary);margin-left:8px;">Warehouse Management</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="scanner-support" style="font-size:10px;color:var(--color-text-secondary);">Checking...</span>
+      <span style="font-size:11px;color:var(--color-text-success);">● Aktif</span>
+    </div>
+  </div>
+
+  <div id="toast" style="display:none;margin-bottom:10px;padding:10px 14px;border-radius:var(--border-radius-md);font-size:13px;" class="mono"></div>
+
+  <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:0.5px solid var(--color-border-tertiary);">
+    <button id="t-dashboard" class="tab-btn active" onclick="go('dashboard')">Dashboard</button>
+    <button id="t-scanin" class="tab-btn" onclick="go('scanin')">Scan In</button>
+    <button id="t-rak" class="tab-btn" onclick="go('rak')">Rak</button>
+    <button id="t-scanout" class="tab-btn" onclick="go('scanout')">Scan Out</button>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
+<script>
+let state={items:[],boxes:[],palets:[],rackSlots:Array(8).fill(null)};
+let tab='dashboard',selectedSlot=null,selectedBoxIds=[],newPaletMode=false,searchResult=null;
+let scannerActive=false,scannerTarget=null,codeReader=null,currentStream=null;
+let detectionPaused=false,lastDetected='';
+let hasZXing=false,hasBarcodeDetector=false;
+
+async function loadState(){
+  try{const r=await window.storage.get('wms4');if(r)state=JSON.parse(r.value);}catch(e){}
+  checkCapabilities();
+  render();
+}
+async function save(){try{await window.storage.set('wms4',JSON.stringify(state));}catch(e){}}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function ts(){return new Date().toLocaleString('id-ID',{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
+
+function checkCapabilities(){
+  hasBarcodeDetector='BarcodeDetector' in window;
+  hasZXing=typeof ZXingBrowser!=='undefined'||typeof window.ZXingBrowser!=='undefined';
+  const label=hasBarcodeDetector?'Native Scanner':hasZXing?'ZXing Scanner':'Manual Only';
+  const el=document.getElementById('scanner-support');
+  if(el)el.textContent=label;
+}
+
+function showToast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  el.style.background=type==='ok'?'var(--color-background-success)':'var(--color-background-danger)';
+  el.style.color=type==='ok'?'var(--color-text-success)':'var(--color-text-danger)';
+  el.style.border=type==='ok'?'0.5px solid var(--color-border-success)':'0.5px solid var(--color-border-danger)';
+  clearTimeout(window._tt);window._tt=setTimeout(()=>{if(el)el.style.display='none';},2800);
+}
+
+function go(t){
+  stopScanner();
+  tab=t;selectedSlot=null;selectedBoxIds=[];newPaletMode=false;searchResult=null;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('t-'+t);if(btn)btn.classList.add('active');
+  render();
+}
+
+function render(){
+  const el=document.getElementById('content');if(!el)return;
+  if(tab==='dashboard')el.innerHTML=renderDashboard();
+  else if(tab==='scanin')el.innerHTML=renderScanIn();
+  else if(tab==='rak')el.innerHTML=renderRak();
+  else if(tab==='scanout')el.innerHTML=renderScanOut();
+  if(scannerActive)attachScannerEvents();
+}
+
+const camIcon=`<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+const stopIcon=`<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="currentColor" style="fill:var(--color-text-danger)"/></svg>`;
+
+function scannerPanel(targetId){
+  if(!scannerActive||scannerTarget!==targetId)return '';
+  return `<div class="scanner-wrap" id="scanner-panel">
+    <div class="scanner-header">
+      <span style="font-size:12px;font-weight:500;">Kamera Aktif</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="cam-select" class="cam-select" onchange="switchCamera(this.value)"><option value="">Kamera default</option></select>
+        <button onclick="stopScanner()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--color-text-danger);font-family:var(--font-sans);">Tutup</button>
+      </div>
+    </div>
+    <div class="scanner-body">
+      <video id="scanner-video" autoplay playsinline muted></video>
+      <div class="scan-line"></div>
+      <div class="scan-corner sc-tl"></div><div class="scan-corner sc-tr"></div>
+      <div class="scan-corner sc-bl"></div><div class="scan-corner sc-br"></div>
+    </div>
+    <div class="scanner-status" id="scan-status">Arahkan kamera ke barcode...</div>
+  </div>`;
+}
+
+function renderDashboard(){
+  const itemsIn=state.items.filter(i=>i.status==='in').length;
+  const itemsOut=state.items.filter(i=>i.status==='out').length;
+  const openBoxes=state.boxes.filter(b=>b.status==='open').length;
+  const stagingPalets=state.palets.filter(p=>p.status==='staging').length;
+  const filled=state.rackSlots.filter(Boolean).length;
+  const recent=[...state.items].reverse().slice(0,6);
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div class="stat-card"><div class="stat-val" style="color:var(--color-text-info)">${itemsIn}</div><div class="stat-lbl">Item In</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--color-text-success)">${itemsOut}</div><div class="stat-lbl">Item Out</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--color-text-warning)">${openBoxes}</div><div class="stat-lbl">Box Terbuka</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--color-text-secondary)">${stagingPalets}</div><div class="stat-lbl">Palet Staging</div></div>
+    </div>
+    <div class="section-title">Peta Rak (${filled}/8 Terisi)</div>
+    <div class="card">${[0,1].map(level=>`
+      <div style="margin-bottom:${level===0?'10px':'0'}">
+        <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:5px;">Lantai ${level+1}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;">
+          ${[0,1,2,3].map(slot=>{const idx=level*4+slot;const pid=state.rackSlots[idx];const palet=pid?state.palets.find(p=>p.id===pid):null;
+          return `<div class="rack-cell ${palet?'occupied':''}">${palet?`<div class="mono" style="font-size:10px;font-weight:500">${palet.label}</div><div style="font-size:10px;color:var(--color-text-success)">${palet.boxIds.length} box</div>`:`<div style="color:var(--color-text-secondary);font-size:10px">L${level+1}-${slot+1}</div>`}</div>`;}).join('')}
+        </div>
+      </div>`).join('')}</div>
+    ${recent.length>0?`<div class="section-title">Item Terbaru</div><div class="card" style="padding:0 16px;">
+      ${recent.map(item=>{const box=state.boxes.find(b=>b.id===item.boxId);return`<div class="item-row">
+        <div><div class="mono" style="font-size:12px">${item.barcode}</div><div style="font-size:10px;color:var(--color-text-secondary)">${item.scanInAt}${box?` · ${box.label}`:''}</div></div>
+        <span class="badge" style="${item.status==='in'?'background:var(--color-background-info);color:var(--color-text-info)':'background:var(--color-background-success);color:var(--color-text-success)'}">${item.status==='in'?'IN':'OUT'}</span>
+      </div>`;}).join('')}</div>`:'<div style="font-size:13px;color:var(--color-text-secondary);padding:8px 0">Mulai dari tab Scan In.</div>'}`;
+}
+
+function renderScanIn(){
+  const openBox=state.boxes.find(b=>b.status==='open');
+  const boxItems=openBox?state.items.filter(i=>openBox.itemIds.includes(i.id)):[];
+  const closedBoxes=state.boxes.filter(b=>b.status!=='open');
+  return `
+    <div class="section-title">Box Aktif</div>
+    <div class="card" style="border-color:${openBox?'var(--color-border-warning)':'var(--color-border-tertiary)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;${boxItems.length>0?'margin-bottom:10px':''}">
+        <div><div class="mono" style="font-size:13px;font-weight:500">${openBox?openBox.label:'Belum ada box'}</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${openBox?`${boxItems.length} item`:'Scan item pertama untuk buat box baru'}</div></div>
+        ${openBox?`<button class="btn-secondary" onclick="closeBox()">Tutup Box</button>`:''}
+      </div>
+      ${boxItems.length>0?`<div style="max-height:100px;overflow-y:auto;border-top:0.5px solid var(--color-border-tertiary);padding-top:8px;">
+        ${[...boxItems].reverse().map(item=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0" class="mono"><span>${item.barcode}</span><span style="color:var(--color-text-secondary)">${item.orderId}</span></div>`).join('')}
+      </div>`:''}
+    </div>
+    <div class="section-title">Scan Barang Masuk</div>
+    <div class="card">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">Order ID (opsional)</div>
+      <input id="orderId" class="input-field" placeholder="ORD-001" style="margin-bottom:10px"/>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">Barcode</div>
+      <div style="display:flex;gap:6px;align-items:stretch;">
+        <input id="barcodeIn" class="input-field" placeholder="Ketik atau scan kamera..." onkeydown="if(event.key==='Enter')scanIn()" style="flex:1;min-width:0"/>
+        <button class="cam-btn" onclick="toggleScanner('in')" title="Buka kamera">${scannerActive&&scannerTarget==='in'?stopIcon:camIcon}</button>
+        <button onclick="scanIn()" class="scan-btn-in">Masuk</button>
+      </div>
+    </div>
+    ${scannerPanel('in')}
+    ${closedBoxes.length>0?`<div class="section-title">Box Selesai (${closedBoxes.length})</div>
+    ${[...closedBoxes].reverse().slice(0,5).map(box=>`<div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+      <div><div class="mono" style="font-size:13px">${box.label}</div><div style="font-size:10px;color:var(--color-text-secondary)">${box.itemIds.length} item · ${box.createdAt}</div></div>
+      <span class="badge" style="${box.status==='placed'?'background:var(--color-background-success);color:var(--color-text-success)':'background:var(--color-background-warning);color:var(--color-text-warning)'}">${box.status==='placed'?'Di Palet':'Closed'}</span>
+    </div>`).join('')}`:''}`;
+}
+
+function renderRak(){
+  const closedUnplaced=state.boxes.filter(b=>b.status==='closed');
+  const stagingPalets=state.palets.filter(p=>p.status==='staging');
+  return `
+    <div class="section-title">Peta Rak — Tap slot kosong untuk assign palet</div>
+    <div class="card">${[0,1].map(level=>`
+      <div style="margin-bottom:${level===0?'10px':'0'}">
+        <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:5px">Lantai ${level+1}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;">
+          ${[0,1,2,3].map(slot=>{const idx=level*4+slot;const pid=state.rackSlots[idx];const palet=pid?state.palets.find(p=>p.id===pid):null;const isSel=selectedSlot===idx;
+          return`<div class="rack-cell ${palet?'occupied':isSel?'selected':''}" onclick="handleSlotClick(${idx})">
+            ${palet?`<div class="mono" style="font-size:10px;font-weight:500">${palet.label}</div><div style="font-size:10px">${palet.boxIds.length} box</div><button class="btn-danger-sm" onclick="event.stopPropagation();removePalet(${idx})" style="margin-top:3px">Angkat</button>`
+            :isSel?`<div style="color:var(--color-text-info);font-size:11px">Pilih palet</div>`
+            :`<div style="color:var(--color-text-secondary);font-size:10px">L${level+1}-${slot+1}</div><div style="font-size:10px;color:var(--color-text-secondary)">Kosong</div>`}
+          </div>`;}).join('')}
+        </div>
+      </div>`).join('')}</div>
+    ${selectedSlot!==null&&stagingPalets.length>0?`
+      <div class="section-title">Pilih Palet → Slot L${selectedSlot<4?1:2}-${(selectedSlot%4)+1}</div>
+      ${stagingPalets.map(p=>{const ic=state.boxes.filter(b=>p.boxIds.includes(b.id)).reduce((a,b)=>a+b.itemIds.length,0);
+      return`<div class="box-sel" onclick="assignPalet('${p.id}')"><div><div class="mono" style="font-size:13px;font-weight:500">${p.label}</div><div style="font-size:10px;color:var(--color-text-secondary)">${p.boxIds.length} box · ${ic} item</div></div><span style="color:var(--color-text-info);font-size:12px">Tempatkan</span></div>`;}).join('')}`:''}
+    ${selectedSlot!==null&&stagingPalets.length===0?`<div class="card" style="text-align:center;padding:14px"><span style="font-size:13px;color:var(--color-text-secondary)">Buat palet dari box closed dulu.</span></div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 7px">
+      <div class="section-title" style="margin:0">Buat Palet Baru</div>
+      ${closedUnplaced.length>0?`<button class="btn-secondary" onclick="toggleNewPalet()">${newPaletMode?'Batal':'+ Buat Palet'}</button>`:''}
+    </div>
+    ${newPaletMode&&closedUnplaced.length>0?`<div class="card">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">Pilih box untuk palet baru:</div>
+      ${closedUnplaced.map(box=>`<div class="box-sel ${selectedBoxIds.includes(box.id)?'selected':''}" onclick="toggleBox('${box.id}')">
+        <div><div class="mono" style="font-size:13px">${box.label}</div><div style="font-size:10px;color:var(--color-text-secondary)">${box.itemIds.length} item</div></div>
+        <span style="font-size:14px;color:var(--color-text-${selectedBoxIds.includes(box.id)?'info':'secondary'})">${selectedBoxIds.includes(box.id)?'[x]':'[ ]'}</span>
+      </div>`).join('')}
+      ${selectedBoxIds.length>0?`<button class="btn-primary" onclick="createPalet()" style="margin-top:8px">Buat Palet (${selectedBoxIds.length} box)</button>`:''}
+    </div>`:closedUnplaced.length===0&&!newPaletMode?`<div style="font-size:12px;color:var(--color-text-secondary)">Belum ada box closed. Tutup box dari tab Scan In.</div>`:''}
+    ${stagingPalets.length>0?`<div class="section-title">Palet Staging (${stagingPalets.length})</div>
+    ${stagingPalets.map(p=>{const ic=state.boxes.filter(b=>p.boxIds.includes(b.id)).reduce((a,b)=>a+b.itemIds.length,0);
+    return`<div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+      <div><div class="mono" style="font-size:13px;font-weight:500">${p.label}</div><div style="font-size:10px;color:var(--color-text-secondary)">${p.boxIds.length} box · ${ic} item</div></div>
+      <span class="badge" style="background:var(--color-background-warning);color:var(--color-text-warning)">Staging</span>
+    </div>`;}).join('')}`:''}`;
+}
+
+function renderScanOut(){
+  let resultHtml='';
+  if(searchResult){
+    const{item,box,palet,slotLabel}=searchResult;
+    resultHtml=`<div class="card" style="border-color:${item.status==='out'?'var(--color-border-danger)':'var(--color-border-success)'}">
+      <div class="mono" style="font-size:15px;font-weight:500;margin-bottom:4px">${item.barcode}</div>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:14px">Order: ${item.orderId} · Masuk: ${item.scanInAt}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+        <div class="stat-card"><div class="mono" style="font-weight:500;font-size:13px">${box?.label||'—'}</div><div class="stat-lbl">Box</div></div>
+        <div class="stat-card"><div class="mono" style="font-weight:500;font-size:13px">${palet?.label||'—'}</div><div class="stat-lbl">Palet</div></div>
+        <div class="stat-card"><div class="mono" style="font-weight:500;font-size:13px">${slotLabel||'—'}</div><div class="stat-lbl">Rak</div></div>
+      </div>
+      ${item.status==='out'?`<div style="text-align:center;font-size:12px;color:var(--color-text-danger)">Sudah scan out pada ${item.scanOutAt}</div>`
+      :`<button class="btn-success" onclick="confirmOut('${item.id}')">Konfirmasi Scan Out</button>`}
+    </div>`;
+  }
+  const recentOut=[...state.items].filter(i=>i.status==='out').reverse().slice(0,8);
+  return `
+    <div class="section-title">Cari dan Scan Out Barang</div>
+    <div class="card">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">Barcode</div>
+      <div style="display:flex;gap:6px;align-items:stretch;">
+        <input id="barcodeOut" class="input-field" placeholder="Ketik atau scan kamera..." onkeydown="if(event.key==='Enter')scanOut()" style="flex:1;min-width:0"/>
+        <button class="cam-btn" onclick="toggleScanner('out')" title="Buka kamera">${scannerActive&&scannerTarget==='out'?stopIcon:camIcon}</button>
+        <button onclick="scanOut()" class="scan-btn-out">Cari</button>
+      </div>
+    </div>
+    ${scannerPanel('out')}
+    ${resultHtml}
+    ${recentOut.length>0?`<div class="section-title">Riwayat Scan Out</div><div class="card" style="padding:0 16px">
+      ${recentOut.map(item=>`<div class="item-row"><div><div class="mono" style="font-size:12px">${item.barcode}</div><div style="font-size:10px;color:var(--color-text-secondary)">${item.scanOutAt}</div></div>
+      <span class="badge" style="background:var(--color-background-success);color:var(--color-text-success)">OUT</span></div>`).join('')}
+    </div>`:''}`;
+}
+
+async function toggleScanner(target){
+  if(scannerActive&&scannerTarget===target){stopScanner();return;}
+  if(scannerActive)stopScanner();
+  scannerActive=true;scannerTarget=target;
+  render();
+  await startScanner(target);
+}
+
+async function startScanner(target){
+  const video=document.getElementById('scanner-video');
+  const statusEl=document.getElementById('scan-status');
+  const camSel=document.getElementById('cam-select');
+  if(!video)return;
+
+  try{
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    const cams=devices.filter(d=>d.kind==='videoinput');
+    if(camSel&&cams.length>1){
+      camSel.innerHTML=cams.map((c,i)=>`<option value="${c.deviceId}">${c.label||'Kamera '+(i+1)}</option>`).join('');
+    }
+    const lastCam=window._lastCamId;
+    const constraints={video:{facingMode:'environment',deviceId:lastCam?{exact:lastCam}:undefined}};
+    const stream=await navigator.mediaDevices.getUserMedia(constraints);
+    currentStream=stream;video.srcObject=stream;
+    if(camSel&&cams.length>1){
+      const track=stream.getVideoTracks()[0];
+      const settings=track.getSettings();
+      if(settings.deviceId){
+        const opt=camSel.querySelector(`option[value="${settings.deviceId}"]`);
+        if(opt)opt.selected=true;
+      }
+    }
+    if(statusEl)statusEl.textContent='Arahkan kamera ke barcode...';
+    startDetection(video,target,statusEl);
+  }catch(err){
+    if(statusEl)statusEl.textContent='Tidak dapat akses kamera: '+err.message;
+  }
+}
+
+async function switchCamera(deviceId){
+  if(!deviceId)return;
+  window._lastCamId=deviceId;
+  detectionPaused=true;
+  if(currentStream)currentStream.getTracks().forEach(t=>t.stop());
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:deviceId}}});
+    currentStream=stream;
+    const video=document.getElementById('scanner-video');
+    if(video){video.srcObject=stream;detectionPaused=false;}
+  }catch(e){console.warn('Camera switch failed',e);}
+}
+
+async function startDetection(video,target,statusEl){
+  if(hasBarcodeDetector){
+    const bd=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code','data_matrix','itf','codabar']});
+    const detect=async()=>{
+      if(!scannerActive||scannerTarget!==target||detectionPaused)return;
+      if(video.readyState===video.HAVE_ENOUGH_DATA){
+        try{
+          const codes=await bd.detect(video);
+          if(codes.length>0){
+            const val=codes[0].rawValue;
+            if(val&&val!==lastDetected){
+              lastDetected=val;
+              onBarcodeDetected(val,target,statusEl);
+              await new Promise(r=>setTimeout(r,1800));
+              lastDetected='';
+            }
+          }
+        }catch(e){}
+      }
+      if(scannerActive&&scannerTarget===target)requestAnimationFrame(detect);
+    };
+    video.addEventListener('loadeddata',()=>requestAnimationFrame(detect),{once:true});
+    if(video.readyState>=2)requestAnimationFrame(detect);
+  } else if(typeof ZXingBrowser!=='undefined'){
+    const hints=new Map();
+    codeReader=new ZXingBrowser.BrowserMultiFormatReader(hints);
+    video.addEventListener('loadeddata',async()=>{
+      try{
+        const loop=async()=>{
+          if(!scannerActive||scannerTarget!==target)return;
+          try{
+            const canvas=document.createElement('canvas');
+            canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+            const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0);
+            const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+            const lum=new ZXingBrowser.ZXingBrowser.RGBLuminanceSource(imgData.data,canvas.width,canvas.height);
+            const bitmap=new ZXingBrowser.BinaryBitmap(new ZXingBrowser.HybridBinarizer(lum));
+            const result=new ZXingBrowser.MultiFormatReader().decode(bitmap);
+            if(result&&result.getText()!==lastDetected){
+              lastDetected=result.getText();
+              onBarcodeDetected(result.getText(),target,statusEl);
+              await new Promise(r=>setTimeout(r,1800));
+              lastDetected='';
+            }
+          }catch(e){}
+          if(scannerActive&&scannerTarget===target)setTimeout(loop,300);
+        };
+        loop();
+      }catch(e){if(statusEl)statusEl.textContent='ZXing error: '+e.message;}
+    },{once:true});
+  }else{
+    if(statusEl)statusEl.textContent='Browser tidak mendukung scan otomatis. Gunakan input manual.';
+  }
+}
+
+function onBarcodeDetected(val,target,statusEl){
+  if(statusEl)statusEl.textContent='Terdeteksi: '+val;
+  if(target==='in'){
+    const el=document.getElementById('barcodeIn');if(el){el.value=val;el.style.borderColor='var(--color-border-success)';}
+    setTimeout(()=>{scanIn();if(el)el.style.borderColor='';},300);
+  }else if(target==='out'){
+    const el=document.getElementById('barcodeOut');if(el){el.value=val;el.style.borderColor='var(--color-border-info)';}
+    setTimeout(()=>{scanOut();if(el)el.style.borderColor='';},300);
+  }
+}
+
+function stopScanner(){
+  scannerActive=false;scannerTarget=null;detectionPaused=false;lastDetected='';
+  if(currentStream){currentStream.getTracks().forEach(t=>t.stop());currentStream=null;}
+  if(codeReader){try{codeReader.reset();}catch(e){}codeReader=null;}
+}
+
+function attachScannerEvents(){}
+
+function scanIn(){
+  const bc=(document.getElementById('barcodeIn')?.value||'').trim().toUpperCase();
+  const order=(document.getElementById('orderId')?.value||'').trim().toUpperCase()||'—';
+  if(!bc)return;
+  if(state.items.find(i=>i.barcode===bc&&i.status==='in')){showToast('Barcode sudah ada di gudang!','err');const el=document.getElementById('barcodeIn');if(el)el.value='';return;}
+  let openBox=state.boxes.find(b=>b.status==='open');
+  if(!openBox){openBox={id:uid(),label:`BOX-${String(state.boxes.length+1).padStart(3,'0')}`,itemIds:[],paletId:null,status:'open',createdAt:ts()};state.boxes.push(openBox);}
+  const item={id:uid(),barcode:bc,orderId:order,boxId:openBox.id,scanInAt:ts(),status:'in',scanOutAt:null};
+  state.items.push(item);openBox.itemIds.push(item.id);
+  save();showToast(`${bc} → ${openBox.label}`);
+  const el=document.getElementById('barcodeIn');if(el)el.value='';
+  const wasActive=scannerActive,wasTarget=scannerTarget;
+  render();
+  if(wasActive&&wasTarget==='in')setTimeout(()=>startScanner('in'),200);
+  else setTimeout(()=>document.getElementById('barcodeIn')?.focus(),50);
+}
+
+function closeBox(){
+  const openBox=state.boxes.find(b=>b.status==='open');
+  if(!openBox||openBox.itemIds.length===0){showToast('Box kosong!','err');return;}
+  openBox.status='closed';save();showToast(`${openBox.label} ditutup — siap palet`);render();
+}
+
+function handleSlotClick(idx){
+  if(state.rackSlots[idx])return;
+  selectedSlot=selectedSlot===idx?null:idx;render();
+}
+
+function removePalet(idx){
+  const pid=state.rackSlots[idx];if(!pid)return;
+  const palet=state.palets.find(p=>p.id===pid);
+  if(palet){palet.status='staging';palet.rackSlot=null;}
+  state.rackSlots[idx]=null;save();showToast('Palet kembali ke staging');render();
+}
+
+function assignPalet(paletId){
+  if(selectedSlot===null)return;
+  const palet=state.palets.find(p=>p.id===paletId);if(!palet)return;
+  palet.status='placed';palet.rackSlot=selectedSlot;
+  state.rackSlots[selectedSlot]=paletId;
+  save();showToast(`${palet.label} → L${selectedSlot<4?1:2}-${(selectedSlot%4)+1}`);
+  selectedSlot=null;render();
+}
+
+function toggleNewPalet(){newPaletMode=!newPaletMode;selectedBoxIds=[];render();}
+function toggleBox(boxId){if(selectedBoxIds.includes(boxId))selectedBoxIds=selectedBoxIds.filter(id=>id!==boxId);else selectedBoxIds.push(boxId);render();}
+
+function createPalet(){
+  if(!selectedBoxIds.length){showToast('Pilih box dulu!','err');return;}
+  const palet={id:uid(),label:`PLT-${String(state.palets.length+1).padStart(3,'0')}`,boxIds:[...selectedBoxIds],rackSlot:null,status:'staging',createdAt:ts()};
+  state.palets.push(palet);
+  selectedBoxIds.forEach(bid=>{const box=state.boxes.find(b=>b.id===bid);if(box){box.paletId=palet.id;box.status='placed';}});
+  save();showToast(`${palet.label} dibuat — ${palet.boxIds.length} box`);
+  selectedBoxIds=[];newPaletMode=false;render();
+}
+
+function scanOut(){
+  const bc=(document.getElementById('barcodeOut')?.value||'').trim().toUpperCase();
+  if(!bc)return;
+  const item=state.items.find(i=>i.barcode===bc);
+  if(!item){showToast('Barcode tidak ditemukan!','err');return;}
+  const box=state.boxes.find(b=>b.id===item.boxId);
+  const palet=box?.paletId?state.palets.find(p=>p.id===box.paletId):null;
+  const slotIdx=palet?.rackSlot!==null&&palet?.rackSlot!==undefined?palet.rackSlot:null;
+  const slotLabel=slotIdx!==null?`L${slotIdx<4?1:2}-${(slotIdx%4)+1}`:null;
+  searchResult={item,box,palet,slotLabel};
+  const el=document.getElementById('barcodeOut');if(el)el.value='';
+  const wasActive=scannerActive;render();
+  if(wasActive)setTimeout(()=>startScanner('out'),200);
+}
+
+function confirmOut(itemId){
+  const item=state.items.find(i=>i.id===itemId);if(!item)return;
+  item.status='out';item.scanOutAt=ts();
+  save();showToast(`${item.barcode} → SCAN OUT`);searchResult=null;render();
+}
+
+loadState();
+</script>
