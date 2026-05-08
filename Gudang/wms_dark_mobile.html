@@ -1,0 +1,587 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg0:#0C0E12;--bg1:#13161C;--bg2:#1A1E26;--bg3:#222730;--bg4:#2A2F3A;
+  --txt:#E8EAF0;--txt2:#8C93A4;--txt3:#555E72;
+  --brd:rgba(255,255,255,0.07);--brd2:rgba(255,255,255,0.12);--brd3:rgba(255,255,255,0.18);
+  --teal:#1D9E75;--teal-d:#0F6E56;--teal-l:#5DCAA5;--teal-dim:rgba(29,158,117,0.12);
+  --red:#E24B4A;--red-dim:rgba(226,75,74,0.12);
+  --amber:#EF9F27;--amber-dim:rgba(239,159,39,0.12);
+  --blue:#378ADD;--blue-dim:rgba(55,138,221,0.12);
+  --r-sm:8px;--r-md:12px;--r-lg:16px;
+}
+html,body{width:100%;background:var(--bg0);color:var(--txt);font-family:var(--font-sans,'Inter',system-ui,sans-serif);font-size:14px;line-height:1.5;overscroll-behavior:none;}
+
+.app{width:100%;max-width:480px;margin:0 auto;min-height:600px;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--bg1);border-bottom:0.5px solid var(--brd);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo{width:34px;height:34px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo i{color:#fff;font-size:18px;}
+.topbar-text{flex:1;}
+.topbar-title{font-size:15px;font-weight:500;color:var(--txt);}
+.topbar-sub{font-size:11px;color:var(--txt3);margin-top:1px;}
+.topbar-badge{background:var(--bg3);border:0.5px solid var(--brd2);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--txt2);display:flex;align-items:center;gap:4px;}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+
+/* ── PAGES ── */
+.pages{flex:1;overflow:hidden;position:relative;}
+.page{display:none;padding:14px 14px 80px;animation:fadein 0.15s ease;}
+.page.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{background:var(--bg1);border-top:0.5px solid var(--brd);display:flex;padding:0;flex-shrink:0;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:3px;cursor:pointer;background:none;border:none;color:var(--txt3);transition:color 0.15s;min-height:60px;}
+.bnav-btn i{font-size:22px;}
+.bnav-btn span{font-size:10px;font-weight:500;letter-spacing:0.2px;}
+.bnav-btn.active{color:var(--teal);}
+.bnav-btn.active .bnav-pip{background:var(--teal);}
+.bnav-pip{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:1px;}
+
+/* ── CARD ── */
+.card{background:var(--bg1);border:0.5px solid var(--brd);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;}
+.card-hd{font-size:12px;font-weight:500;color:var(--txt3);letter-spacing:0.4px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.card-hd i{font-size:14px;}
+
+/* ── ACTIVE STATE PILL ── */
+.state-pill{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--r-md);margin-bottom:12px;border:0.5px solid var(--brd);}
+.state-pill.idle{background:var(--bg2);}
+.state-pill.set{background:var(--teal-dim);border-color:rgba(29,158,117,0.25);}
+.sp-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sp-icon.idle{background:var(--bg3);color:var(--txt3);}
+.sp-icon.set{background:rgba(29,158,117,0.2);color:var(--teal-l);}
+.sp-body{flex:1;min-width:0;}
+.sp-label{font-size:11px;color:var(--txt3);}
+.sp-value{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-value.idle{color:var(--txt3);}
+.sp-value.set{color:var(--teal-l);font-family:var(--font-mono,monospace);}
+.sp-sub{font-size:11px;color:var(--teal);margin-top:1px;}
+.sp-clear{background:none;border:none;padding:6px;cursor:pointer;color:var(--txt3);border-radius:8px;flex-shrink:0;font-size:16px;}
+.sp-clear:active{background:var(--bg4);}
+
+/* ── SCAN INPUT ── */
+.scan-row{display:flex;gap:8px;align-items:stretch;}
+.scan-input{flex:1;background:var(--bg2);border:0.5px solid var(--brd2);border-radius:var(--r-md);padding:13px 14px;color:var(--txt);font-size:14px;font-family:var(--font-mono,monospace);letter-spacing:0.3px;outline:none;-webkit-appearance:none;min-height:48px;}
+.scan-input::placeholder{font-family:var(--font-sans,'Inter',sans-serif);letter-spacing:0;color:var(--txt3);font-size:13px;}
+.scan-input:focus{border-color:rgba(29,158,117,0.5);box-shadow:0 0 0 3px rgba(29,158,117,0.1);}
+.icon-btn{width:48px;height:48px;border-radius:var(--r-md);border:0.5px solid var(--brd2);background:var(--bg2);color:var(--txt2);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.1s;}
+.icon-btn:active{background:var(--bg3);}
+.icon-btn.active-cam{background:rgba(29,158,117,0.2);border-color:rgba(29,158,117,0.4);color:var(--teal-l);}
+
+/* ── TYPE HINTS ── */
+.hints{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.hint{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3);}
+.hint-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ── CAMERA ── */
+.cam-wrap{margin-top:10px;border-radius:var(--r-md);overflow:hidden;background:#000;display:none;border:0.5px solid var(--brd2);}
+.cam-wrap.open{display:block;}
+.cam-wrap video{width:100%;display:block;aspect-ratio:16/9;object-fit:cover;}
+.cam-overlay{position:relative;background:#000;}
+.scan-frame-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.sf{width:56%;aspect-ratio:3/1;border:1.5px solid rgba(29,158,117,0.8);border-radius:4px;position:relative;}
+.sf::before,.sf::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--teal);border-style:solid;}
+.sf::before{top:-2px;left:-2px;border-width:2px 0 0 2px;border-radius:3px 0 0 0;}
+.sf::after{bottom:-2px;right:-2px;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
+.sl{position:absolute;left:0;right:0;height:1.5px;background:var(--teal);animation:sl 1.8s ease-in-out infinite;top:0;}
+@keyframes sl{0%,100%{top:0}50%{top:100%}}
+.cam-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,0.7);}
+.cam-status{font-size:12px;color:rgba(255,255,255,0.7);}
+.cam-close-btn{background:rgba(255,255,255,0.15);border:none;border-radius:20px;color:#fff;font-size:12px;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+/* ── FLASH ── */
+.flash{display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:var(--r-md);font-size:13px;margin-top:8px;}
+.flash i{font-size:15px;flex-shrink:0;margin-top:1px;}
+.flash.ok{background:var(--teal-dim);color:var(--teal-l);border:0.5px solid rgba(29,158,117,0.2);}
+.flash.err{background:var(--red-dim);color:#F09595;border:0.5px solid rgba(226,75,74,0.2);}
+.flash.warn{background:var(--amber-dim);color:var(--amber);border:0.5px solid rgba(239,159,39,0.2);}
+.flash.info{background:var(--blue-dim);color:#85B7EB;border:0.5px solid rgba(55,138,221,0.2);}
+
+/* ── LIST ── */
+.list-hd{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;}
+.list-hd-left{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--txt2);}
+.list-hd-left i{font-size:14px;}
+.cnt{background:var(--teal);color:#fff;font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;}
+.clr-btn{background:none;border:none;padding:5px 8px;cursor:pointer;color:var(--txt3);font-size:12px;border-radius:6px;display:flex;align-items:center;gap:4px;}
+.clr-btn:active{background:var(--bg3);}
+.items{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;}
+.item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg2);border-radius:var(--r-sm);border:0.5px solid var(--brd);}
+.item i{font-size:15px;color:var(--txt3);flex-shrink:0;}
+.item-code{flex:1;font-family:var(--font-mono,monospace);font-size:13px;color:var(--txt);}
+.item-box{font-size:11px;color:var(--txt3);}
+.item-del{background:none;border:none;padding:6px;cursor:pointer;color:var(--txt3);border-radius:6px;font-size:14px;flex-shrink:0;}
+.item-del:active{color:var(--red);background:var(--red-dim);}
+.empty{text-align:center;padding:22px 16px;color:var(--txt3);font-size:13px;}
+.empty i{font-size:28px;display:block;margin-bottom:6px;opacity:0.3;}
+
+/* ── SUBMIT ── */
+.submit-btn{width:100%;padding:14px;border-radius:var(--r-md);border:none;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;transition:background 0.1s;}
+.submit-btn.green{background:var(--teal);color:#fff;}
+.submit-btn.green:active{background:var(--teal-d);}
+.submit-btn.green:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+.submit-btn.red-btn{background:var(--red);color:#fff;}
+.submit-btn.red-btn:active{background:#A32D2D;}
+.submit-btn.red-btn:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+.stat{background:var(--bg1);border:0.5px solid var(--brd);border-radius:var(--r-md);padding:12px 14px;}
+.stat-n{font-size:24px;font-weight:500;color:var(--txt);}
+.stat-l{font-size:11px;color:var(--txt3);margin-top:2px;}
+.stat.accent{border-color:rgba(29,158,117,0.25);}
+.stat.accent .stat-n{color:var(--teal-l);}
+
+/* ── HISTORY ── */
+.hist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--brd);}
+.hist-item:last-child{border-bottom:none;}
+.hist-pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:500;flex-shrink:0;}
+.hist-pill.in{background:var(--teal-dim);color:var(--teal-l);}
+.hist-pill.out{background:var(--red-dim);color:#F09595;}
+.hist-code{flex:1;font-family:var(--font-mono,monospace);font-size:12px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-meta{font-size:11px;color:var(--txt3);flex-shrink:0;text-align:right;}
+</style>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="logo"><i class="ti ti-scan" aria-hidden="true"></i></div>
+    <div class="topbar-text">
+      <div class="topbar-title">WMS Scanner</div>
+      <div class="topbar-sub">Supermarket Warehouse</div>
+    </div>
+    <div class="topbar-badge"><div class="dot-live"></div><span id="total-bag-top">0 bag</span></div>
+  </div>
+
+  <div class="pages">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="stats">
+        <div class="stat accent"><div class="stat-n" id="d-bags">0</div><div class="stat-l">Total Bag</div></div>
+        <div class="stat"><div class="stat-n" id="d-boxes">0</div><div class="stat-l">Total Box</div></div>
+        <div class="stat"><div class="stat-n" id="d-raks">0</div><div class="stat-l">Rak Terisi</div></div>
+        <div class="stat"><div class="stat-n" id="d-out">0</div><div class="stat-l">Total Keluar</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><i class="ti ti-history" aria-hidden="true"></i>Riwayat</div>
+        <div id="hist-list"><div class="empty"><i class="ti ti-inbox"></i>Belum ada transaksi</div></div>
+      </div>
+    </div>
+
+    <!-- SCAN IN -->
+    <div id="page-scanin" class="page">
+      <div class="card">
+        <div class="card-hd"><i class="ti ti-scan" aria-hidden="true"></i>Scanner — deteksi otomatis</div>
+
+        <div id="si-state" class="state-pill idle">
+          <div class="sp-icon idle"><i class="ti ti-box" aria-hidden="true"></i></div>
+          <div class="sp-body">
+            <div class="sp-label">Box Aktif</div>
+            <div class="sp-value idle" id="si-box-val">Scan kode box terlebih dahulu</div>
+          </div>
+        </div>
+
+        <div class="scan-row">
+          <input class="scan-input" id="si-input" placeholder="Scan / ketik barcode..." onkeydown="if(event.key==='Enter')procSI()">
+          <button class="icon-btn" id="si-cam-btn" onclick="toggleCam('si-cam','si-input',procSI)" aria-label="Kamera"><i class="ti ti-camera"></i></button>
+        </div>
+        <div class="hints">
+          <div class="hint"><div class="hint-dot" style="background:#378ADD"></div>#0000x = Box</div>
+          <div class="hint"><div class="hint-dot" style="background:#1D9E75"></div>0211xxxxxx = Bag</div>
+        </div>
+        <div class="cam-wrap" id="si-cam">
+          <div class="cam-overlay">
+            <video id="si-video" playsinline muted></video>
+            <div class="scan-frame-wrap"><div class="sf"><div class="sl"></div></div></div>
+          </div>
+          <div class="cam-footer">
+            <span class="cam-status" id="si-cam-st">Mendeteksi barcode...</span>
+            <button class="cam-close-btn" onclick="stopCam('si-cam')"><i class="ti ti-x" style="font-size:12px"></i> Tutup</button>
+          </div>
+        </div>
+        <div id="si-msg"></div>
+      </div>
+
+      <div class="card">
+        <div class="list-hd">
+          <div class="list-hd-left"><i class="ti ti-shopping-bag"></i>Bag dalam box <span class="cnt" id="si-cnt">0</span></div>
+          <button class="clr-btn" onclick="siClear()"><i class="ti ti-trash" style="font-size:13px"></i> Kosongkan</button>
+        </div>
+        <div id="si-list"><div class="empty"><i class="ti ti-shopping-bag"></i>Belum ada bag</div></div>
+        <button class="submit-btn green" id="si-sub" onclick="submitSI()" disabled>
+          <i class="ti ti-device-floppy"></i> Simpan ke Box
+        </button>
+      </div>
+    </div>
+
+    <!-- SCAN BOX -->
+    <div id="page-scanbox" class="page">
+      <div class="card">
+        <div class="card-hd"><i class="ti ti-scan" aria-hidden="true"></i>Scanner — deteksi otomatis</div>
+
+        <div id="sb-state" class="state-pill idle">
+          <div class="sp-icon idle"><i class="ti ti-layout-rows" aria-hidden="true"></i></div>
+          <div class="sp-body">
+            <div class="sp-label">Rak Tujuan</div>
+            <div class="sp-value idle" id="sb-rak-val">Rak belum dipilih (opsional)</div>
+          </div>
+        </div>
+
+        <div class="scan-row">
+          <input class="scan-input" id="sb-input" placeholder="Scan / ketik barcode..." onkeydown="if(event.key==='Enter')procSB()">
+          <button class="icon-btn" id="sb-cam-btn" onclick="toggleCam('sb-cam','sb-input',procSB)" aria-label="Kamera"><i class="ti ti-camera"></i></button>
+        </div>
+        <div class="hints">
+          <div class="hint"><div class="hint-dot" style="background:#378ADD"></div>#0000x = Box</div>
+          <div class="hint"><div class="hint-dot" style="background:#EF9F27"></div>#Ax / #Bx = Rak</div>
+        </div>
+        <div class="cam-wrap" id="sb-cam">
+          <div class="cam-overlay">
+            <video id="sb-video" playsinline muted></video>
+            <div class="scan-frame-wrap"><div class="sf"><div class="sl"></div></div></div>
+          </div>
+          <div class="cam-footer">
+            <span class="cam-status" id="sb-cam-st">Mendeteksi barcode...</span>
+            <button class="cam-close-btn" onclick="stopCam('sb-cam')"><i class="ti ti-x" style="font-size:12px"></i> Tutup</button>
+          </div>
+        </div>
+        <div id="sb-msg"></div>
+      </div>
+
+      <div class="card">
+        <div class="list-hd">
+          <div class="list-hd-left"><i class="ti ti-box"></i>Box / Palet <span class="cnt" id="sb-cnt">0</span></div>
+          <button class="clr-btn" onclick="sbClear()"><i class="ti ti-trash" style="font-size:13px"></i> Kosongkan</button>
+        </div>
+        <div id="sb-list"><div class="empty"><i class="ti ti-box"></i>Belum ada box</div></div>
+        <button class="submit-btn green" id="sb-sub" onclick="submitSB()" disabled>
+          <i class="ti ti-device-floppy"></i> Simpan Box ke Rak
+        </button>
+      </div>
+    </div>
+
+    <!-- SCAN OUT -->
+    <div id="page-scanout" class="page">
+      <div class="card">
+        <div class="card-hd"><i class="ti ti-package-export" aria-hidden="true"></i>Scan barcode bag</div>
+        <div class="scan-row">
+          <input class="scan-input" id="so-input" placeholder="Scan / ketik kode bag..." onkeydown="if(event.key==='Enter')procSO()">
+          <button class="icon-btn" id="so-cam-btn" onclick="toggleCam('so-cam','so-input',procSO)" aria-label="Kamera"><i class="ti ti-camera"></i></button>
+        </div>
+        <div class="hints">
+          <div class="hint"><div class="hint-dot" style="background:#1D9E75"></div>0211xxxxxx = Bag keluar</div>
+        </div>
+        <div class="cam-wrap" id="so-cam">
+          <div class="cam-overlay">
+            <video id="so-video" playsinline muted></video>
+            <div class="scan-frame-wrap"><div class="sf"><div class="sl"></div></div></div>
+          </div>
+          <div class="cam-footer">
+            <span class="cam-status">Mendeteksi barcode...</span>
+            <button class="cam-close-btn" onclick="stopCam('so-cam')"><i class="ti ti-x" style="font-size:12px"></i> Tutup</button>
+          </div>
+        </div>
+        <div id="so-msg"></div>
+      </div>
+
+      <div class="card">
+        <div class="list-hd">
+          <div class="list-hd-left"><i class="ti ti-package-export"></i>Akan dikeluarkan <span class="cnt" id="so-cnt">0</span></div>
+          <button class="clr-btn" onclick="soClear()"><i class="ti ti-trash" style="font-size:13px"></i> Kosongkan</button>
+        </div>
+        <div id="so-list"><div class="empty"><i class="ti ti-package-export"></i>Belum ada bag</div></div>
+        <button class="submit-btn red-btn" id="so-sub" onclick="submitSO()" disabled>
+          <i class="ti ti-package-export"></i> Keluarkan dari Gudang
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="bnav-btn active" onclick="goPage('dashboard',this)">
+      <i class="ti ti-layout-dashboard"></i><span>Dashboard</span><div class="bnav-pip"></div>
+    </button>
+    <button class="bnav-btn" onclick="goPage('scanin',this)">
+      <i class="ti ti-package-import"></i><span>Scan In</span><div class="bnav-pip"></div>
+    </button>
+    <button class="bnav-btn" onclick="goPage('scanbox',this)">
+      <i class="ti ti-forklift"></i><span>Scan Box</span><div class="bnav-pip"></div>
+    </button>
+    <button class="bnav-btn" onclick="goPage('scanout',this)">
+      <i class="ti ti-package-export"></i><span>Scan Out</span><div class="bnav-pip"></div>
+    </button>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+<script>
+const DB={
+  inv:{},loc:{},tx:[],out:0,
+  save(){try{localStorage.setItem('wms3',JSON.stringify({i:this.inv,l:this.loc,t:this.tx,o:this.out}))}catch(e){}},
+  load(){try{const d=JSON.parse(localStorage.getItem('wms3')||'{}');this.inv=d.i||{};this.loc=d.l||{};this.tx=d.t||[];this.out=d.o||0}catch(e){}}
+};
+DB.load();
+
+let streams={};
+let siBox=null,siBags=[],sbRak=null,sbBoxes=[],soBags=[];
+
+const now=()=>new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+function getType(c){
+  c=c.trim();
+  if(/^0211\d{6,}$/.test(c)) return 'bag';
+  if(/^#?0000\d+$/i.test(c)) return 'box';
+  if(/^#?[AB]\d+$/i.test(c)) return 'rak';
+  return null;
+}
+function norm(c){
+  c=c.trim();const t=getType(c);
+  if((t==='box'||t==='rak')&&!c.startsWith('#')) return '#'+c.toUpperCase();
+  return (t==='box'||t==='rak')?c.toUpperCase():c;
+}
+
+function flash(id,type,html,dur=3000){
+  const icons={ok:'circle-check',err:'circle-x',warn:'alert-triangle',info:'info-circle'};
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=`<div class="flash ${type}"><i class="ti ti-${icons[type]}" aria-hidden="true"></i><span>${html}</span></div>`;
+  if(dur) setTimeout(()=>{if(el)el.innerHTML=''},dur);
+}
+
+function goPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  stopAllCams();
+  if(name==='dashboard') renderDash();
+  else setTimeout(()=>{const inp=document.getElementById(name.replace('scan','si-').replace('scanbox','sb-').replace('scanout','so-').replace('scandashboard','')+'input');},100);
+}
+
+function renderDash(){
+  const bags=Object.values(DB.inv).reduce((s,a)=>s+a.length,0);
+  const boxes=Object.keys(DB.inv).length;
+  const raks=new Set(Object.values(DB.loc).filter(Boolean)).size;
+  document.getElementById('d-bags').textContent=bags;
+  document.getElementById('d-boxes').textContent=boxes;
+  document.getElementById('d-raks').textContent=raks;
+  document.getElementById('d-out').textContent=DB.out;
+  document.getElementById('total-bag-top').textContent=bags+' bag';
+  const hist=DB.tx.slice(0,25);
+  const hel=document.getElementById('hist-list');
+  if(!hist.length){hel.innerHTML='<div class="empty"><i class="ti ti-inbox"></i>Belum ada transaksi</div>';return;}
+  hel.innerHTML=hist.map(t=>`
+    <div class="hist-item">
+      <span class="hist-pill ${t.type}">${t.type==='in'?'IN':'OUT'}</span>
+      <span class="hist-code">${t.code}</span>
+      <div class="hist-meta">${t.isBox?(t.rak||'—'):(t.box||'—')}<br>${t.time}</div>
+    </div>`).join('');
+}
+
+function updateTopBadge(){
+  const bags=Object.values(DB.inv).reduce((s,a)=>s+a.length,0);
+  const el=document.getElementById('total-bag-top');
+  if(el) el.textContent=bags+' bag';
+}
+
+/* ── SCAN IN ── */
+function procSI(){
+  const raw=document.getElementById('si-input').value.trim();if(!raw)return;
+  const t=getType(raw),c=norm(raw);
+  document.getElementById('si-input').value='';
+  if(t==='box'){
+    siBox=c;
+    const st=document.getElementById('si-state');
+    st.className='state-pill set';
+    st.querySelector('.sp-icon').className='sp-icon set';
+    st.querySelector('.sp-icon').innerHTML='<i class="ti ti-box" aria-hidden="true"></i>';
+    const v=document.getElementById('si-box-val');v.className='sp-value set';v.textContent=c;
+    let sub=st.querySelector('.sp-sub');
+    if(!sub){sub=document.createElement('div');sub.className='sp-sub';v.after(sub);}
+    sub.textContent=siBags.length+' bag ditambahkan';
+    const clrBtn=st.querySelector('.sp-clear');
+    if(!clrBtn){const b=document.createElement('button');b.className='sp-clear';b.innerHTML='<i class="ti ti-x"></i>';b.onclick=()=>{siBox=null;resetSIState();};st.appendChild(b);}
+    flash('si-msg','info','Box aktif: <strong>'+c+'</strong> — scan bag sekarang');
+    siUpdateSub();siUpdateBtn();return;
+  }
+  if(t==='bag'){
+    if(!siBox){flash('si-msg','warn','Scan kode box terlebih dahulu');return;}
+    if(siBags.find(b=>b.c===c)){flash('si-msg','warn','Bag <strong>'+c+'</strong> sudah ada dalam daftar');return;}
+    siBags.push({c,tm:now()});renderSIList();siUpdateSub();siUpdateBtn();
+    flash('si-msg','ok','Ditambahkan: <strong>'+c+'</strong>');return;
+  }
+  if(t==='rak'){flash('si-msg','warn','Kode rak diproses di halaman Scan Box');return;}
+  flash('si-msg','err','Format tidak dikenal: '+raw,'',5000);
+}
+function resetSIState(){
+  const st=document.getElementById('si-state');st.className='state-pill idle';
+  st.querySelector('.sp-icon').className='sp-icon idle';
+  st.querySelector('.sp-icon').innerHTML='<i class="ti ti-box"></i>';
+  const v=document.getElementById('si-box-val');v.className='sp-value idle';v.textContent='Scan kode box terlebih dahulu';
+  const sub=st.querySelector('.sp-sub');if(sub)sub.remove();
+  const clr=st.querySelector('.sp-clear');if(clr)clr.remove();
+  siUpdateBtn();
+}
+function siUpdateSub(){
+  const sub=document.getElementById('si-state').querySelector('.sp-sub');
+  if(sub) sub.textContent=siBags.length+' bag ditambahkan';
+}
+function renderSIList(){
+  const el=document.getElementById('si-list');
+  document.getElementById('si-cnt').textContent=siBags.length;
+  if(!siBags.length){el.innerHTML='<div class="empty"><i class="ti ti-shopping-bag"></i>Belum ada bag</div>';return;}
+  el.innerHTML='<div class="items">'+siBags.map((b,i)=>`
+    <div class="item">
+      <i class="ti ti-shopping-bag"></i>
+      <span class="item-code">${b.c}</span>
+      <span class="item-box">${b.tm}</span>
+      <button class="item-del" onclick="siRem(${i})"><i class="ti ti-x"></i></button>
+    </div>`).join('')+'</div>';
+}
+function siRem(i){siBags.splice(i,1);renderSIList();siUpdateSub();siUpdateBtn();}
+function siClear(){siBags=[];renderSIList();siUpdateSub();siUpdateBtn();}
+function siUpdateBtn(){document.getElementById('si-sub').disabled=!(siBox&&siBags.length);}
+function submitSI(){
+  if(!siBox||!siBags.length)return;
+  if(!DB.inv[siBox])DB.inv[siBox]=[];
+  const news=siBags.filter(b=>!DB.inv[siBox].includes(b.c));
+  DB.inv[siBox].push(...news.map(b=>b.c));
+  const ts=now();
+  news.forEach(b=>DB.tx.unshift({type:'in',code:b.c,box:siBox,rak:null,time:ts}));
+  DB.save();updateTopBadge();
+  flash('si-msg','ok',news.length+' bag disimpan ke box <strong>'+siBox+'</strong>');
+  siBags=[];renderSIList();siUpdateSub();siUpdateBtn();
+}
+
+/* ── SCAN BOX ── */
+function procSB(){
+  const raw=document.getElementById('sb-input').value.trim();if(!raw)return;
+  const t=getType(raw),c=norm(raw);
+  document.getElementById('sb-input').value='';
+  if(t==='rak'){
+    sbRak=c;
+    const st=document.getElementById('sb-state');st.className='state-pill set';
+    st.querySelector('.sp-icon').className='sp-icon set';
+    st.querySelector('.sp-icon').innerHTML='<i class="ti ti-layout-rows"></i>';
+    const v=document.getElementById('sb-rak-val');v.className='sp-value set';v.textContent=c;
+    const clrBtn=st.querySelector('.sp-clear');
+    if(!clrBtn){const b=document.createElement('button');b.className='sp-clear';b.innerHTML='<i class="ti ti-x"></i>';b.onclick=()=>{sbRak=null;resetSBState();};st.appendChild(b);}
+    flash('sb-msg','info','Rak tujuan: <strong>'+c+'</strong>');return;
+  }
+  if(t==='box'){
+    if(sbBoxes.includes(c)){flash('sb-msg','warn','Box sudah ada dalam daftar');return;}
+    sbBoxes.push(c);renderSBList();flash('sb-msg','ok','Box ditambahkan: <strong>'+c+'</strong>');
+    document.getElementById('sb-sub').disabled=false;return;
+  }
+  if(t==='bag'){flash('sb-msg','warn','Kode bag diproses di halaman Scan In');return;}
+  flash('sb-msg','err','Format tidak dikenal: '+raw,5000);
+}
+function resetSBState(){
+  const st=document.getElementById('sb-state');st.className='state-pill idle';
+  st.querySelector('.sp-icon').className='sp-icon idle';
+  st.querySelector('.sp-icon').innerHTML='<i class="ti ti-layout-rows"></i>';
+  const v=document.getElementById('sb-rak-val');v.className='sp-value idle';v.textContent='Rak belum dipilih (opsional)';
+  const clr=st.querySelector('.sp-clear');if(clr)clr.remove();
+}
+function renderSBList(){
+  const el=document.getElementById('sb-list');
+  document.getElementById('sb-cnt').textContent=sbBoxes.length;
+  if(!sbBoxes.length){el.innerHTML='<div class="empty"><i class="ti ti-box"></i>Belum ada box</div>';return;}
+  el.innerHTML='<div class="items">'+sbBoxes.map((c,i)=>`
+    <div class="item">
+      <i class="ti ti-box"></i>
+      <span class="item-code">${c}</span>
+      <button class="item-del" onclick="sbRem(${i})"><i class="ti ti-x"></i></button>
+    </div>`).join('')+'</div>';
+}
+function sbRem(i){sbBoxes.splice(i,1);renderSBList();if(!sbBoxes.length)document.getElementById('sb-sub').disabled=true;}
+function sbClear(){sbBoxes=[];renderSBList();document.getElementById('sb-sub').disabled=true;}
+function submitSB(){
+  if(!sbBoxes.length)return;
+  const ts=now();
+  sbBoxes.forEach(b=>{DB.loc[b]=sbRak||null;DB.tx.unshift({type:'in',code:b,box:null,rak:sbRak||null,time:ts,isBox:true});});
+  DB.save();
+  flash('sb-msg','ok',sbBoxes.length+' box disimpan'+(sbRak?' ke rak <strong>'+sbRak+'</strong>':''));
+  sbBoxes=[];sbRak=null;renderSBList();resetSBState();document.getElementById('sb-sub').disabled=true;
+}
+
+/* ── SCAN OUT ── */
+function procSO(){
+  const raw=document.getElementById('so-input').value.trim();if(!raw)return;
+  const t=getType(raw),c=norm(raw);
+  document.getElementById('so-input').value='';
+  if(t!=='bag'){flash('so-msg','err','Scan Out hanya menerima kode bag (0211xxxxxx)');return;}
+  if(soBags.find(b=>b.c===c)){flash('so-msg','warn','Bag sudah ada dalam daftar');return;}
+  let foundBox=null;
+  for(const [box,bags] of Object.entries(DB.inv)){if(bags.includes(c)){foundBox=box;break;}}
+  if(!foundBox){flash('so-msg','err','Bag <strong>'+c+'</strong> tidak ditemukan dalam gudang');return;}
+  soBags.push({c,box:foundBox});renderSOList();
+  flash('so-msg','info','Bag <strong>'+c+'</strong> → box <strong>'+foundBox+'</strong>');
+  document.getElementById('so-sub').disabled=false;
+}
+function renderSOList(){
+  const el=document.getElementById('so-list');
+  document.getElementById('so-cnt').textContent=soBags.length;
+  if(!soBags.length){el.innerHTML='<div class="empty"><i class="ti ti-package-export"></i>Belum ada bag</div>';return;}
+  el.innerHTML='<div class="items">'+soBags.map((b,i)=>`
+    <div class="item">
+      <i class="ti ti-shopping-bag"></i>
+      <div style="flex:1"><div class="item-code">${b.c}</div><div class="item-box">Box: ${b.box}</div></div>
+      <button class="item-del" onclick="soRem(${i})"><i class="ti ti-x"></i></button>
+    </div>`).join('')+'</div>';
+}
+function soRem(i){soBags.splice(i,1);renderSOList();if(!soBags.length)document.getElementById('so-sub').disabled=true;}
+function soClear(){soBags=[];renderSOList();document.getElementById('so-sub').disabled=true;}
+function submitSO(){
+  if(!soBags.length)return;
+  const ts=now();
+  soBags.forEach(b=>{if(DB.inv[b.box])DB.inv[b.box]=DB.inv[b.box].filter(c=>c!==b.c);DB.tx.unshift({type:'out',code:b.c,box:b.box,rak:null,time:ts});});
+  DB.out+=soBags.length;DB.save();updateTopBadge();
+  flash('so-msg','ok',soBags.length+' bag berhasil dikeluarkan dari gudang');
+  soBags=[];renderSOList();document.getElementById('so-sub').disabled=true;
+}
+
+/* ── CAMERA ── */
+async function toggleCam(camId,inputId,cb){
+  const cam=document.getElementById(camId);if(!cam)return;
+  if(cam.classList.contains('open')){stopCam(camId);return;}
+  const vidId=camId.replace('-cam','-video');
+  const vid=document.getElementById(vidId);if(!vid)return;
+  cam.classList.add('open');
+  document.getElementById(camId.replace('-cam','-cam-btn'))?.classList.add('active-cam');
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+    streams[camId]=s;vid.srcObject=s;await vid.play();
+    const hints=new Map();hints.set(2,[1,2,3,4,5,6,7,8,11,12,13,14,15,16,17,18,20,21]);
+    const reader=new ZXing.BrowserMultiFormatReader(hints);
+    streams[camId+'_r']=reader;
+    const stEl=document.getElementById(camId+'-st')||cam.querySelector('.cam-status');
+    reader.decodeFromVideoElement(vid,(res,err)=>{
+      if(res){
+        const txt=res.getText();
+        document.getElementById(inputId).value=txt;
+        if(stEl)stEl.textContent='Terdeteksi: '+txt;
+        stopCam(camId);setTimeout(cb,80);
+      }
+    });
+  }catch(e){
+    cam.classList.remove('open');
+    document.getElementById(camId.replace('-cam','-cam-btn'))?.classList.remove('active-cam');
+    const msgId=camId.replace('-cam','-msg');
+    flash(msgId,'err','Kamera tidak tersedia: '+(e.message||'izin ditolak'));
+  }
+}
+function stopCam(id){
+  document.getElementById(id)?.classList.remove('open');
+  document.getElementById(id.replace('-cam','-cam-btn'))?.classList.remove('active-cam');
+  try{streams[id]?.getTracks().forEach(t=>t.stop());}catch(e){}
+  try{streams[id+'_r']?.reset();}catch(e){}
+  delete streams[id];delete streams[id+'_r'];
+}
+function stopAllCams(){['si-cam','sb-cam','so-cam'].forEach(stopCam);}
+
+renderDash();
+</script>
