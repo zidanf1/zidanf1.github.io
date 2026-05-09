@@ -903,7 +903,7 @@
           <div class="hints">
             <div class="hint">
               <div class="hint-dot" style="background: #378ADD"></div>
-              #0000x = Box
+              #00001–#99999 = Box
             </div>
             <div class="hint">
               <div class="hint-dot" style="background: #1D9E75"></div>
@@ -998,7 +998,7 @@
           <div class="hints">
             <div class="hint">
               <div class="hint-dot" style="background: #378ADD"></div>
-              #0000x = Box
+              #00001–#99999 = Box
             </div>
             <div class="hint">
               <div class="hint-dot" style="background: #EF9F27"></div>
@@ -1215,17 +1215,25 @@
 
     function getType(c) {
       c = c.trim();
-      if (/^0211\d{6,}$/.test(c))    return 'bag';
-      if (/^#?0000\d+$/i.test(c))    return 'box';
-      if (/^#?[AB]\d+$/i.test(c))    return 'rak';
+      if (/^0211\d{6,}$/.test(c))        return 'bag';
+      // Box: 1–5 digit angka (dengan atau tanpa #), akan di-pad jadi 5 digit
+      if (/^#?\d{1,5}$/.test(c))         return 'box';
+      if (/^#?[AB]\d+$/i.test(c))        return 'rak';
       return null;
     }
 
     function norm(c) {
       c = c.trim();
       const t = getType(c);
-      if ((t === 'box' || t === 'rak') && !c.startsWith('#')) return '#' + c.toUpperCase();
-      return (t === 'box' || t === 'rak') ? c.toUpperCase() : c;
+      if (t === 'box') {
+        // Hapus # jika ada, pad kiri jadi 5 digit, tambah #
+        const digits = c.replace(/^#/, '');
+        return '#' + digits.padStart(5, '0');
+      }
+      if (t === 'rak') {
+        return c.startsWith('#') ? c.toUpperCase() : '#' + c.toUpperCase();
+      }
+      return c;
     }
 
     function flash(id, type, html, dur = 3000) {
@@ -1294,6 +1302,18 @@
     }
 
     /* ══════════════════════════════════════════
+       BAG UNIQUENESS HELPER
+       Cek apakah kode bag sudah ada di DB (semua box)
+       Return: { exists: bool, box: string|null }
+    ══════════════════════════════════════════ */
+    function findBagInDB(bagCode) {
+      for (const [box, bags] of Object.entries(DB.inv)) {
+        if (bags.includes(bagCode)) return { exists: true, box };
+      }
+      return { exists: false, box: null };
+    }
+
+    /* ══════════════════════════════════════════
        SCAN IN
     ══════════════════════════════════════════ */
     function procSI() {
@@ -1305,7 +1325,18 @@
       document.getElementById('si-input').value = '';
 
       if (t === 'box') {
-        siBox = c;
+        // Jika ada sesi box sebelumnya yang sudah terisi bag → auto-simpan dulu
+        let autoSaveMsg = null;
+        if (siBox && siBags.length > 0) {
+          const prevBox = siBox;
+          const saved   = autoSaveSI();
+          autoSaveMsg = saved + ' bag otomatis disimpan ke box <strong>' + prevBox + '</strong>';
+        }
+
+        // Buka sesi box baru
+        siBox  = c;
+        siBags = [];
+
         const st = document.getElementById('si-state');
         st.className = 'state-pill set';
         st.querySelector('.sp-icon').className = 'sp-icon set';
@@ -1321,7 +1352,7 @@
           sub.className = 'sp-sub';
           v.after(sub);
         }
-        sub.textContent = siBags.length + ' bag ditambahkan';
+        sub.textContent = '0 bag ditambahkan';
 
         if (!st.querySelector('.sp-clear')) {
           const b = document.createElement('button');
@@ -1331,15 +1362,38 @@
           st.appendChild(b);
         }
 
-        flash('si-msg', 'info', 'Box aktif: <strong>' + c + '</strong> — scan bag sekarang');
+        renderSIList();
         siUpdateSub();
         siUpdateBtn();
+
+        if (autoSaveMsg) {
+          flash('si-msg', 'ok', autoSaveMsg + ' · Box baru: <strong>' + c + '</strong>', 5000);
+        } else {
+          flash('si-msg', 'info', 'Box aktif: <strong>' + c + '</strong> — scan bag sekarang');
+        }
         return;
       }
 
       if (t === 'bag') {
         if (!siBox) { flash('si-msg', 'warn', 'Scan kode box terlebih dahulu'); return; }
-        if (siBags.find(b => b.c === c)) { flash('si-msg', 'warn', 'Bag <strong>' + c + '</strong> sudah ada dalam daftar'); return; }
+
+        // Cek duplikat dalam sesi aktif saat ini
+        if (siBags.find(b => b.c === c)) {
+          flash('si-msg', 'warn', 'Bag <strong>' + c + '</strong> sudah ada dalam daftar sesi ini');
+          return;
+        }
+
+        // Cek uniqueness global — bag tidak boleh ada di box manapun dalam gudang
+        const found = findBagInDB(c);
+        if (found.exists) {
+          if (found.box === siBox) {
+            flash('si-msg', 'err', 'Bag <strong>' + c + '</strong> sudah tercatat di box ini sebelumnya');
+          } else {
+            flash('si-msg', 'err', 'Bag <strong>' + c + '</strong> sudah ada di box <strong>' + found.box + '</strong> — tidak bisa double');
+          }
+          return;
+        }
+
         siBags.push({ c, tm: now() });
         renderSIList();
         siUpdateSub();
@@ -1412,19 +1466,59 @@
       document.getElementById('si-sub').disabled = !(siBox && siBags.length);
     }
 
+    /* ── AUTO-SAVE sesi box lama (dipanggil saat scan box baru) ── */
+    function autoSaveSI() {
+      if (!siBox || !siBags.length) return 0;
+      if (!DB.inv[siBox]) DB.inv[siBox] = [];
+
+      const news = siBags.filter(b => {
+        const found = findBagInDB(b.c);
+        return !found.exists;
+      });
+
+      if (news.length) {
+        DB.inv[siBox].push(...news.map(b => b.c));
+        const ts = now();
+        news.forEach(b => DB.tx.unshift({ type: 'in', code: b.c, box: siBox, rak: null, time: ts }));
+        DB.save();
+        updateTopBadge();
+      }
+
+      const count = news.length;
+      siBags = [];
+      renderSIList();
+      siUpdateSub();
+      siUpdateBtn();
+      return count;
+    }
+
     function submitSI() {
       if (!siBox || !siBags.length) return;
       if (!DB.inv[siBox]) DB.inv[siBox] = [];
 
-      const news = siBags.filter(b => !DB.inv[siBox].includes(b.c));
-      DB.inv[siBox].push(...news.map(b => b.c));
+      // Filter final: buang bag yang ternyata sudah masuk DB (race condition)
+      const duplicates = [];
+      const news = siBags.filter(b => {
+        const found = findBagInDB(b.c);
+        if (found.exists) { duplicates.push({ c: b.c, box: found.box }); return false; }
+        return true;
+      });
 
+      if (duplicates.length && !news.length) {
+        flash('si-msg', 'err', 'Semua bag sudah ada di gudang, tidak ada yang disimpan');
+        return;
+      }
+
+      DB.inv[siBox].push(...news.map(b => b.c));
       const ts = now();
       news.forEach(b => DB.tx.unshift({ type: 'in', code: b.c, box: siBox, rak: null, time: ts }));
       DB.save();
       updateTopBadge();
 
-      flash('si-msg', 'ok', news.length + ' bag disimpan ke box <strong>' + siBox + '</strong>');
+      let msg = news.length + ' bag disimpan ke box <strong>' + siBox + '</strong>';
+      if (duplicates.length) msg += ' · ' + duplicates.length + ' dilewati (duplikat)';
+      flash('si-msg', 'ok', msg);
+
       siBags = [];
       renderSIList();
       siUpdateSub();
@@ -1555,23 +1649,21 @@
       }
 
       if (soBags.find(b => b.c === c)) {
-        flash('so-msg', 'warn', 'Bag sudah ada dalam daftar');
+        flash('so-msg', 'warn', 'Bag <strong>' + c + '</strong> sudah ada dalam daftar sesi ini');
         return;
       }
 
-      let foundBox = null;
-      for (const [box, bags] of Object.entries(DB.inv)) {
-        if (bags.includes(c)) { foundBox = box; break; }
-      }
+      // Cari bag di DB menggunakan helper
+      const found = findBagInDB(c);
 
-      if (!foundBox) {
+      if (!found.exists) {
         flash('so-msg', 'err', 'Bag <strong>' + c + '</strong> tidak ditemukan dalam gudang');
         return;
       }
 
-      soBags.push({ c, box: foundBox });
+      soBags.push({ c, box: found.box });
       renderSOList();
-      flash('so-msg', 'info', 'Bag <strong>' + c + '</strong> → box <strong>' + foundBox + '</strong>');
+      flash('so-msg', 'info', 'Bag <strong>' + c + '</strong> → box <strong>' + found.box + '</strong>');
       document.getElementById('so-sub').disabled = false;
     }
 
