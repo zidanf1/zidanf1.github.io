@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0C0E12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>WMS Scanner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="wms.css">
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ── TOP BAR ── -->
+    <header class="topbar">
+      <div class="logo">
+        <i class="ti ti-scan" aria-hidden="true"></i>
+      </div>
+      <div class="topbar-text">
+        <div class="topbar-title">WMS Scanner</div>
+        <div class="topbar-sub">Supermarket Warehouse</div>
+      </div>
+      <div class="topbar-badge">
+        <div class="dot-live"></div>
+        <span id="total-bag-top">0 bag</span>
+      </div>
+    </header>
+
+    <!-- ── PAGES ── -->
+    <main class="pages">
+
+      <!-- ══════════════════════════════════════════
+           SCAN IN
+      ══════════════════════════════════════════ -->
+      <section id="page-scanin" class="page active">
+
+        <!-- Counter: berapa box & bag sudah discan -->
+        <div class="scan-counters">
+          <div class="scan-counter accent">
+            <i class="ti ti-box"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="si-counter-boxes">0</div>
+              <div class="sc-label">Box Aktif</div>
+            </div>
+          </div>
+          <div class="scan-counter">
+            <i class="ti ti-shopping-bag"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="si-counter-bags">0</div>
+              <div class="sc-label">Bag Discan</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <i class="ti ti-scan" aria-hidden="true"></i>
+            Scanner — deteksi otomatis
+          </div>
+
+          <!-- Active box state -->
+          <div id="si-state" class="state-pill idle">
+            <div class="sp-icon idle">
+              <i class="ti ti-box" aria-hidden="true"></i>
+            </div>
+            <div class="sp-body">
+              <div class="sp-label">Box Aktif</div>
+              <div class="sp-value idle" id="si-box-val">Scan kode box terlebih dahulu</div>
+            </div>
+          </div>
+
+          <!-- Scan input -->
+          <div class="scan-row">
+            <input
+              class="scan-input"
+              id="si-input"
+              placeholder="Scan / ketik barcode..."
+              onkeydown="if(event.key==='Enter') procSI()"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+            >
+            <button
+              class="icon-btn"
+              id="si-cam-btn"
+              onclick="toggleCam('si-cam','si-input',procSI)"
+              aria-label="Buka kamera"
+            >
+              <i class="ti ti-camera"></i>
+            </button>
+          </div>
+
+          <!-- Type hints -->
+          <div class="hints">
+            <div class="hint">
+              <div class="hint-dot" style="background: #378ADD"></div>
+              #00001–#99999 = Box
+            </div>
+            <div class="hint">
+              <div class="hint-dot" style="background: #1D9E75"></div>
+              0211xxxxxx = Bag
+            </div>
+          </div>
+
+          <!-- Camera view -->
+          <div class="cam-wrap" id="si-cam">
+            <div class="cam-overlay">
+              <video id="si-video" playsinline muted></video>
+              <div class="scan-frame-wrap">
+                <div class="sf"><div class="sl"></div></div>
+              </div>
+            </div>
+            <div class="cam-footer">
+              <span class="cam-status" id="si-cam-st">Mendeteksi barcode...</span>
+              <button class="cam-close-btn" onclick="stopCam('si-cam')">
+                <i class="ti ti-x" style="font-size:12px"></i> Tutup
+              </button>
+            </div>
+          </div>
+
+          <div id="si-msg"></div>
+        </div>
+
+        <!-- Bag list -->
+        <div class="card">
+          <div class="list-hd">
+            <div class="list-hd-left">
+              <i class="ti ti-shopping-bag"></i>
+              Bag dalam box
+              <span class="cnt" id="si-cnt">0</span>
+            </div>
+            <button class="clr-btn" onclick="siClear()">
+              <i class="ti ti-trash" style="font-size:13px"></i> Kosongkan
+            </button>
+          </div>
+          <div id="si-list">
+            <div class="empty">
+              <i class="ti ti-shopping-bag"></i>
+              Belum ada bag
+            </div>
+          </div>
+          <button class="submit-btn green" id="si-sub" onclick="submitSI()" disabled>
+            <i class="ti ti-device-floppy"></i> Simpan ke Box
+          </button>
+          <button class="submit-btn upload-btn" onclick="openUploadModal('scanin')">
+            <i class="ti ti-cloud-upload"></i> Upload ke Server
+          </button>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════
+           LOKASI (menggantikan Scan Box / Rak)
+      ══════════════════════════════════════════ -->
+      <section id="page-lokasi" class="page">
+
+        <!-- Counter: berapa box sudah di-assign -->
+        <div class="scan-counters">
+          <div class="scan-counter accent">
+            <i class="ti ti-box"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="sb-counter-boxes">0</div>
+              <div class="sc-label">Box Dipilih</div>
+            </div>
+          </div>
+          <div class="scan-counter">
+            <i class="ti ti-map-pin"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="sb-counter-lokasi" style="font-size:13px; padding-top:2px">Temporary</div>
+              <div class="sc-label">Lokasi Aktif</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lokasi selector -->
+        <div class="card">
+          <div class="card-hd">
+            <i class="ti ti-map-pin" aria-hidden="true"></i>
+            Pilih Lokasi
+          </div>
+
+          <!-- State lokasi aktif -->
+          <div id="sb-state" class="state-pill set">
+            <div class="sp-icon set">
+              <i class="ti ti-map-pin" aria-hidden="true"></i>
+            </div>
+            <div class="sp-body">
+              <div class="sp-label">Lokasi Tujuan</div>
+              <div class="sp-value set" id="sb-lok-val">Temporary</div>
+            </div>
+          </div>
+
+          <!-- Grid lokasi -->
+          <div class="lokasi-grid" id="lokasi-grid">
+            <!-- Dirender oleh JS: renderLokasiGrid() -->
+          </div>
+
+          <div id="sb-msg"></div>
+        </div>
+
+        <!-- Box scan -->
+        <div class="card">
+          <div class="card-hd">
+            <i class="ti ti-scan" aria-hidden="true"></i>
+            Scan Box ke Lokasi
+          </div>
+
+          <!-- Scan input -->
+          <div class="scan-row">
+            <input
+              class="scan-input"
+              id="sb-input"
+              placeholder="Scan / ketik barcode box..."
+              onkeydown="if(event.key==='Enter') procSB()"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+            >
+            <button
+              class="icon-btn"
+              id="sb-cam-btn"
+              onclick="toggleCam('sb-cam','sb-input',procSB)"
+              aria-label="Buka kamera"
+            >
+              <i class="ti ti-camera"></i>
+            </button>
+          </div>
+
+          <!-- Type hints -->
+          <div class="hints">
+            <div class="hint">
+              <div class="hint-dot" style="background: #378ADD"></div>
+              #00001–#99999 = Box
+            </div>
+          </div>
+
+          <!-- Camera view -->
+          <div class="cam-wrap" id="sb-cam">
+            <div class="cam-overlay">
+              <video id="sb-video" playsinline muted></video>
+              <div class="scan-frame-wrap">
+                <div class="sf"><div class="sl"></div></div>
+              </div>
+            </div>
+            <div class="cam-footer">
+              <span class="cam-status" id="sb-cam-st">Mendeteksi barcode...</span>
+              <button class="cam-close-btn" onclick="stopCam('sb-cam')">
+                <i class="ti ti-x" style="font-size:12px"></i> Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box list -->
+        <div class="card">
+          <div class="list-hd">
+            <div class="list-hd-left">
+              <i class="ti ti-box"></i>
+              Box / Palet
+              <span class="cnt" id="sb-cnt">0</span>
+            </div>
+            <button class="clr-btn" onclick="sbClear()">
+              <i class="ti ti-trash" style="font-size:13px"></i> Kosongkan
+            </button>
+          </div>
+          <div id="sb-list">
+            <div class="empty">
+              <i class="ti ti-box"></i>
+              Belum ada box
+            </div>
+          </div>
+          <button class="submit-btn green" id="sb-sub" onclick="submitSB()" disabled>
+            <i class="ti ti-device-floppy"></i> Simpan Box ke Lokasi
+          </button>
+          <button class="submit-btn upload-btn" onclick="openUploadModal('lokasi')">
+            <i class="ti ti-cloud-upload"></i> Upload ke Server
+          </button>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════
+           SCAN OUT
+      ══════════════════════════════════════════ -->
+      <section id="page-scanout" class="page">
+
+        <!-- Counter: berapa bag akan dikeluarkan -->
+        <div class="scan-counters">
+          <div class="scan-counter accent">
+            <i class="ti ti-package-export"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="so-counter-bags">0</div>
+              <div class="sc-label">Bag Akan Keluar</div>
+            </div>
+          </div>
+          <div class="scan-counter">
+            <i class="ti ti-history"></i>
+            <div class="sc-body">
+              <div class="sc-num" id="so-counter-total">0</div>
+              <div class="sc-label">Total Keluar</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <i class="ti ti-package-export" aria-hidden="true"></i>
+            Scan barcode bag
+          </div>
+
+          <!-- Scan input -->
+          <div class="scan-row">
+            <input
+              class="scan-input"
+              id="so-input"
+              placeholder="Scan / ketik kode bag..."
+              onkeydown="if(event.key==='Enter') procSO()"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+            >
+            <button
+              class="icon-btn"
+              id="so-cam-btn"
+              onclick="toggleCam('so-cam','so-input',procSO)"
+              aria-label="Buka kamera"
+            >
+              <i class="ti ti-camera"></i>
+            </button>
+          </div>
+
+          <!-- Type hints -->
+          <div class="hints">
+            <div class="hint">
+              <div class="hint-dot" style="background: #1D9E75"></div>
+              0211xxxxxx = Bag keluar
+            </div>
+          </div>
+
+          <!-- Camera view -->
+          <div class="cam-wrap" id="so-cam">
+            <div class="cam-overlay">
+              <video id="so-video" playsinline muted></video>
+              <div class="scan-frame-wrap">
+                <div class="sf"><div class="sl"></div></div>
+              </div>
+            </div>
+            <div class="cam-footer">
+              <span class="cam-status">Mendeteksi barcode...</span>
+              <button class="cam-close-btn" onclick="stopCam('so-cam')">
+                <i class="ti ti-x" style="font-size:12px"></i> Tutup
+              </button>
+            </div>
+          </div>
+
+          <div id="so-msg"></div>
+        </div>
+
+        <!-- Bag out list -->
+        <div class="card">
+          <div class="list-hd">
+            <div class="list-hd-left">
+              <i class="ti ti-package-export"></i>
+              Akan dikeluarkan
+              <span class="cnt" id="so-cnt">0</span>
+            </div>
+            <button class="clr-btn" onclick="soClear()">
+              <i class="ti ti-trash" style="font-size:13px"></i> Kosongkan
+            </button>
+          </div>
+          <div id="so-list">
+            <div class="empty">
+              <i class="ti ti-package-export"></i>
+              Belum ada bag
+            </div>
+          </div>
+          <button class="submit-btn red-btn" id="so-sub" onclick="submitSO()" disabled>
+            <i class="ti ti-package-export"></i> Keluarkan dari Gudang
+          </button>
+          <button class="submit-btn upload-btn" onclick="openUploadModal('scanout')">
+            <i class="ti ti-cloud-upload"></i> Upload ke Server
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ── BOTTOM NAV ── -->
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <button class="bnav-btn active" onclick="goPage('scanin', this)" aria-label="Scan In">
+        <i class="ti ti-package-import"></i>
+        <span>Scan In</span>
+        <div class="bnav-pip"></div>
+      </button>
+      <button class="bnav-btn" onclick="goPage('lokasi', this)" aria-label="Lokasi">
+        <i class="ti ti-map-pin"></i>
+        <span>Lokasi</span>
+        <div class="bnav-pip"></div>
+      </button>
+      <button class="bnav-btn" onclick="goPage('scanout', this)" aria-label="Scan Out">
+        <i class="ti ti-package-export"></i>
+        <span>Scan Out</span>
+        <div class="bnav-pip"></div>
+      </button>
+    </nav>
+
+  </div><!-- /.app -->
+
+  <!-- ══════════════════════════════════════════
+       UPLOAD MODAL (sheet)
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="upload-modal" onclick="if(event.target===this) closeUploadModal()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">
+        <i class="ti ti-cloud-upload" style="color:var(--teal); margin-right:6px"></i>
+        Upload Data
+      </div>
+      <div class="modal-sub">
+        Halaman: <strong id="modal-page-label">—</strong> · Data yang akan dikirim ke server
+      </div>
+
+      <div class="modal-info-grid">
+        <div class="modal-info-item accent">
+          <div class="modal-info-label">Box</div>
+          <div class="modal-info-value" id="modal-boxes-val">0</div>
+        </div>
+        <div class="modal-info-item accent">
+          <div class="modal-info-label">Bag</div>
+          <div class="modal-info-value" id="modal-bags-val">0</div>
+        </div>
+        <div class="modal-info-item" style="grid-column: span 2">
+          <div class="modal-info-label">Lokasi</div>
+          <div class="modal-info-value" style="font-size:14px" id="modal-lokasi-val">—</div>
+        </div>
+      </div>
+
+      <div class="upload-progress" id="upload-progress">
+        <div class="upload-spinner"></div>
+        <div class="upload-status" id="upload-status-text">Mengirim data...</div>
+      </div>
+
+      <div class="modal-btns">
+        <button class="modal-confirm-btn" id="modal-confirm-btn" onclick="confirmUpload()">
+          <i class="ti ti-send"></i> Kirim ke Server
+        </button>
+        <button class="modal-cancel-btn" onclick="closeUploadModal()">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCRIPTS ── -->
+  <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+  <script src="wms.js"></script>
+</body>
+</html>
