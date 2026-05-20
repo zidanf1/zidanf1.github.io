@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS — Supermarket Management System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== LOGIN ========== -->
+  <div id="page-login" class="page on">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">
+          <div class="logo-icon"><i class="ti ti-shoe"></i></div>
+          <div>
+            <p class="logo-title">SMS</p>
+            <p class="logo-sub">Supermarket Management System</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="input-wrap">
+            <i class="ti ti-user"></i>
+            <input id="login-username" type="text" placeholder="Masukkan username"
+              onkeydown="if(event.key==='Enter')doLogin()" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <i class="ti ti-lock"></i>
+            <input id="login-password" type="password" placeholder="Masukkan password"
+              onkeydown="if(event.key==='Enter')doLogin()" />
+            <button class="eye-btn" onclick="togglePass()" type="button">
+              <i class="ti ti-eye" id="eye-icon"></i>
+            </button>
+          </div>
+        </div>
+        <div id="login-err" class="alert alert-danger" style="display:none">
+          <i class="ti ti-alert-circle"></i><span id="login-err-msg"></span>
+        </div>
+        <div id="login-loading" class="loading" style="display:none">
+          <i class="ti ti-loader spin"></i><span>Memverifikasi...</span>
+        </div>
+        <button class="btn-primary btn-block" onclick="doLogin()">
+          <i class="ti ti-login"></i> Masuk
+        </button>
+        <p class="login-hint">Demo: admin / 1234 &nbsp;|&nbsp; operator / 1234</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="page-dashboard" class="page">
+    <div class="topbar">
+      <div class="topbar-user">
+        <div class="avatar"><i class="ti ti-user"></i></div>
+        <div>
+          <p class="topbar-name" id="dash-username">—</p>
+          <p class="topbar-role" id="dash-role">—</p>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()" title="Keluar">
+        <i class="ti ti-logout"></i>
+      </button>
+    </div>
+    <div class="dash-wrap">
+      <p class="dash-title">Dashboard</p>
+      <p class="dash-sub">SMS — Supermarket Management System</p>
+      <div class="menu-list">
+        <button class="menu-btn" onclick="goPage('scan-in')">
+          <div class="menu-icon menu-icon-blue"><i class="ti ti-scan"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Scan In</p>
+            <p class="menu-desc">Scan barang masuk ke gudang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('scan-out')">
+          <div class="menu-icon menu-icon-red"><i class="ti ti-scan"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Scan Out</p>
+            <p class="menu-desc">Scan barang keluar dari gudang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('location')">
+          <div class="menu-icon menu-icon-green"><i class="ti ti-map-pin"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Location</p>
+            <p class="menu-desc">Kelola lokasi & rak barang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('report')">
+          <div class="menu-icon menu-icon-amber"><i class="ti ti-chart-bar"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Laporan Harian</p>
+            <p class="menu-desc">Data scan in & out hari ini</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCAN IN ========== -->
+  <div id="page-scan-in" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Scan In</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+
+      <div class="card">
+        <div class="flowchart">
+          <div class="flow-step active" id="fl-box"><i class="ti ti-package"></i> Scan Box</div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="flow-step" id="fl-bag"><i class="ti ti-scan"></i> Scan Bag</div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="flow-step" id="fl-done"><i class="ti ti-circle-check"></i> Selesai</div>
+        </div>
+      </div>
+
+      <div id="si-box-active" class="alert alert-info" style="display:none">
+        <i class="ti ti-package"></i>
+        <div>
+          <p class="alert-label">Box Aktif</p>
+          <p class="alert-val" id="si-box-info"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row-between mb8">
+          <p class="form-label mb0">Barcode</p>
+          <span id="si-hint" class="hint-badge">Scan box atau bag</span>
+        </div>
+        <div class="scan-row">
+          <div class="input-wrap flex1">
+            <i class="ti ti-barcode"></i>
+            <input id="si-input" type="text" placeholder="BOX-xxx atau 0211xxxxxxxxx"
+              onkeydown="if(event.key==='Enter')siScan()" />
+          </div>
+          <button class="btn-scan" onclick="siScan()">
+            <i class="ti ti-scan"></i> Scan
+          </button>
+        </div>
+        <p id="si-err" class="err-text" style="display:none"></p>
+        <div id="si-ok" class="alert alert-success mt8" style="display:none">
+          <i class="ti ti-circle-check"></i><span id="si-ok-msg"></span>
+        </div>
+      </div>
+
+      <div id="si-loading" class="loading card" style="display:none">
+        <i class="ti ti-loader spin"></i><span>Mengirim ke server...</span>
+      </div>
+
+      <div class="card">
+        <div class="row-between mb10">
+          <p class="section-title mb0">DATA SCAN IN</p>
+          <span class="badge-loc">
+            <i class="ti ti-map-pin" style="font-size:11px"></i> Temporary
+          </span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Barcode Bag</th>
+              <th>Lotcode</th>
+              <th class="tc">QTY</th>
+              <th class="tc">Size</th>
+              <th class="tc">Nilai</th>
+              <th>ID Box</th>
+              <th style="width:28px"></th>
+            </tr></thead>
+            <tbody id="si-tbody">
+              <tr><td colspan="7" class="empty-cell">Belum ada data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="si-total" class="total-row" style="display:none">
+          <span>Total: <strong id="si-total-bag">0</strong> bag</span>
+          <span>Total: <strong id="si-total-pairs">0</strong> pairs</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== SCAN OUT ========== -->
+  <div id="page-scan-out" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Scan Out</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Line <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="ti ti-line-dotted"></i>
+            <select id="so-line" class="native-select">
+              <option value="">-- Pilih Line --</option>
+            </select>
+          </div>
+          <p id="so-line-err" class="err-text" style="display:none">Line wajib dipilih</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lot Code <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="ti ti-tag"></i>
+            <input id="so-lotcode" type="text" placeholder="Masukkan lot code" />
+          </div>
+          <p id="so-lot-err" class="err-text" style="display:none">Lot code wajib diisi</p>
+        </div>
+        <div class="form-group mb0">
+          <label class="form-label">Nomor Barcode Bag <span class="req">*</span></label>
+          <div class="scan-row">
+            <div class="input-wrap flex1">
+              <i class="ti ti-barcode"></i>
+              <input id="so-barcode" type="text" placeholder="0211xxxxxxxxx"
+                onkeydown="if(event.key==='Enter')soScan()" />
+            </div>
+            <button class="btn-scan" onclick="soScan()">
+              <i class="ti ti-scan"></i> Scan
+            </button>
+          </div>
+          <p id="so-bc-err" class="err-text" style="display:none"></p>
+        </div>
+      </div>
+
+      <div id="so-loading" class="loading card" style="display:none">
+        <i class="ti ti-loader spin"></i><span>Mengirim ke server...</span>
+      </div>
+
+      <div id="so-ok" class="alert alert-success" style="display:none;margin-bottom:10px">
+        <i class="ti ti-circle-check"></i><span id="so-ok-msg"></span>
+      </div>
+
+      <div class="card">
+        <p class="section-title">DATA BON OUT</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Barcode</th>
+              <th>Lotcode</th>
+              <th class="tc">QTY</th>
+              <th class="tc">Size</th>
+              <th class="tc">Nilai</th>
+              <th>Line</th>
+              <th style="width:28px"></th>
+            </tr></thead>
+            <tbody id="so-tbody">
+              <tr><td colspan="7" class="empty-cell">Belum ada data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="so-total" class="total-row" style="display:none">
+          <span>Total: <strong id="so-total-bag">0</strong> bag</span>
+          <span>Total: <strong id="so-total-pairs">0</strong> pairs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LOCATION ========== -->
+  <div id="page-location" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Location</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+
+      <div class="bc">
+        <span id="bc1" class="bc-active" onclick="locGo(1)">Denah Rak</span>
+        <span id="bc-s2" style="display:none">
+          <i class="ti ti-chevron-right" style="font-size:11px"></i>
+        </span>
+        <span id="bc2" class="bc-link" onclick="locGo(2)" style="display:none"></span>
+        <span id="bc-s3" style="display:none">
+          <i class="ti ti-chevron-right" style="font-size:11px"></i>
+        </span>
+        <span id="bc3" class="bc-active" style="display:none">Isi Palet</span>
+      </div>
+
+      <!-- Sub 1: Denah -->
+      <div id="loc-pg1" class="loc-pg on">
+        <div class="card">
+          <div class="legend">
+            <div class="legend-item"><div class="dot dot-empty"></div>Kosong</div>
+            <div class="legend-item"><div class="dot dot-some"></div>Sebagian</div>
+            <div class="legend-item"><div class="dot dot-full"></div>Penuh</div>
+          </div>
+          <p class="slabel">Temporary</p>
+          <div id="cell-T" class="tmp-row st-empty" onclick="locPick('Temporary')"></div>
+          <p class="slabel">Zona A</p>
+          <div class="rak-grid" id="grid-a"></div>
+          <p class="slabel">Zona B</p>
+          <div class="rak-grid" id="grid-b"></div>
+        </div>
+        <div id="loc-loading" class="loading card" style="display:none">
+          <i class="ti ti-loader spin"></i><span>Memuat denah rak...</span>
+        </div>
+        <div class="card" style="padding:10px 14px">
+          <div class="statbar">
+            <span>Sebagian: <strong id="stat-some" class="warn">0</strong></span>
+            <span>Penuh: <strong id="stat-full" class="succ">0</strong></span>
+            <span>Kosong: <strong id="stat-empty" class="muted">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub 2: Isi Rak -->
+      <div id="loc-pg2" class="loc-pg">
+        <div class="hrow">
+          <div>
+            <p class="htitle">Rak <span id="p2-lok" class="info-text"></span></p>
+            <p class="hsub" id="p2-kap"></p>
+          </div>
+          <button id="btn-add-plt" class="btn-info" onclick="locOpenP3()" style="display:none">
+            <i class="ti ti-plus"></i> Tambah Palet
+          </button>
+        </div>
+        <div id="p2-loading" class="loading card" style="display:none">
+          <i class="ti ti-loader spin"></i><span>Memuat isi rak...</span>
+        </div>
+        <div id="p2-body"></div>
+      </div>
+
+      <!-- Sub 3: Isi Palet -->
+      <div id="loc-pg3" class="loc-pg">
+        <div class="hrow">
+          <div>
+            <p class="htitle">Isi Palet</p>
+            <p class="hsub" id="p3-sub"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row-between mb8">
+            <p class="form-label mb0">Scan Box</p>
+            <span class="count-badge" id="p3-cnt">0 box</span>
+          </div>
+          <div class="scan-row">
+            <div class="input-wrap flex1">
+              <i class="ti ti-package"></i>
+              <input id="p3-bc" type="text" placeholder="Scan barcode box"
+                onkeydown="if(event.key==='Enter')locScanBox()" />
+            </div>
+            <button class="btn-scan" onclick="locScanBox()">
+              <i class="ti ti-scan"></i> Scan
+            </button>
+          </div>
+          <p id="p3-err" class="err-text" style="display:none"></p>
+          <div id="p3-ok" class="alert alert-success mt8" style="display:none">
+            <i class="ti ti-circle-check"></i><span id="p3-ok-msg"></span>
+          </div>
+        </div>
+        <div id="p3-loading" class="loading card" style="display:none">
+          <i class="ti ti-loader spin"></i><span>Mengambil data dari server...</span>
+        </div>
+        <div class="card">
+          <p class="section-title">DATA BOX</p>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr>
+                <th>ID Box</th>
+                <th>Lotcode</th>
+                <th class="tc">QTY</th>
+                <th class="tc">Size</th>
+                <th class="tc">Nilai</th>
+                <th style="width:28px"></th>
+              </tr></thead>
+              <tbody id="p3-tbody">
+                <tr><td colspan="6" class="empty-cell">Belum ada box</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="p3-total" class="total-row" style="display:none">
+            <span><strong id="p3-total-n">0</strong> box</span>
+            <strong id="p3-total-pairs">0 pairs</strong>
+          </div>
+        </div>
+        <button id="p3-save" onclick="locSavePalet()" class="btn-success btn-block" style="display:none">
+          <i class="ti ti-device-floppy"></i> Simpan ke Server
+        </button>
+        <div id="p3-saving" class="loading card" style="display:none">
+          <i class="ti ti-loader spin"></i><span>Menyimpan ke server...</span>
+        </div>
+        <div id="p3-done" class="success-box" style="display:none">
+          <i class="ti ti-circle-check"></i>
+          <h3>Palet Tersimpan!</h3>
+          <p id="p3-done-msg"></p>
+          <div class="success-btns">
+            <button class="btn-ghost" onclick="locLagi()">+ Palet Lagi</button>
+            <button class="btn-ghost" onclick="locGo(2)">Lihat Rak</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== REPORT ========== -->
+  <div id="page-report" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Laporan Harian</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <p class="stat-label">
+            <i class="ti ti-arrow-bar-to-down" style="color:#059669"></i> Total Input
+          </p>
+          <p class="stat-val" id="rpt-in-val">0</p>
+          <p class="stat-sub" id="rpt-in-sub">0 lotcode</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">
+            <i class="ti ti-arrow-bar-up" style="color:#dc2626"></i> Total Output
+          </p>
+          <p class="stat-val" id="rpt-out-val">0</p>
+          <p class="stat-sub" id="rpt-out-sub">0 lotcode</p>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input id="rpt-search" type="text" placeholder="Cari lotcode..." oninput="rptRender()">
+        </div>
+        <select id="rpt-line" onchange="rptRender()" style="border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;font-size:12px;color:var(--t2);background:var(--card);outline:none;cursor:pointer">
+          <option value="">Semua Line</option>
+        </select>
+      </div>
+
+      <div class="card" style="padding:12px" id="rpt-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <p class="date-chip" style="margin-bottom:0">
+            <i class="ti ti-calendar" style="font-size:13px"></i>
+            <span id="rpt-date"></span>
+          </p>
+          <button onclick="rptExport()" class="btn-export">
+            <i class="ti ti-photo-down" style="font-size:15px"></i> Ekspor Gambar
+          </button>
+        </div>
+        <div class="tbl-scroll" id="rpt-tbl-wrap">
+          <table id="rpt-table">
+            <thead><tr>
+              <th>Line</th>
+              <th>Lotcode</th>
+              <th class="tr">QTY</th>
+              <th class="tr">Input</th>
+              <th class="tr">Output</th>
+            </tr></thead>
+            <tbody id="rpt-tbody"></tbody>
+            <tfoot id="rpt-tfoot"></tfoot>
+          </table>
+        </div>
+        <div class="foot-row">
+          <span><strong id="rpt-showing">0</strong> baris</span>
+          <span>Sisa stok: <strong id="rpt-net">0 pairs</strong></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
