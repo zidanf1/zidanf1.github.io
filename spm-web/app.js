@@ -15,7 +15,7 @@
    ============================================================ */
 
 // URL dasar API backend — ganti sesuai server Anda
-const API_BASE = '.';
+const API_BASE = 'https://blackcat2003.infinityfree.me/';
 
 // Data user yang sedang login, diisi saat login berhasil
 let SESSION = {
