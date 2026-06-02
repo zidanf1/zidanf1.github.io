@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — SMS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="logo-icon"><i class="ti ti-shoe"></i></div>
+        <div>
+          <p class="logo-title">SMS</p>
+          <p class="logo-sub">Supermarket Management System</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <div class="input-wrap">
+          <i class="ti ti-user"></i>
+          <input id="login-username" type="text" placeholder="Masukkan username"
+            onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <i class="ti ti-lock"></i>
+          <input id="login-password" type="password" placeholder="Masukkan password"
+            onkeydown="if(event.key==='Enter')doLogin()" />
+          <button class="eye-btn" onclick="togglePass()" type="button">
+            <i class="ti ti-eye" id="eye-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="login-err" class="alert alert-danger" style="display:none">
+        <i class="ti ti-alert-circle"></i><span id="login-err-msg"></span>
+      </div>
+      <div id="login-loading" class="loading" style="display:none">
+        <i class="ti ti-loader spin"></i><span>Memverifikasi...</span>
+      </div>
+
+      <button class="btn-primary btn-block" onclick="doLogin()">
+        <i class="ti ti-login"></i> Masuk
+      </button>
+      <p class="login-hint">Demo: admin / 1234 &nbsp;|&nbsp; operator / 1234</p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '.';
+
+    // Redirect ke app jika sudah punya sesi aktif
+    (function () {
+      if (sessionStorage.getItem('sms_session')) {
+        window.location.replace('index.html');
+      }
+    })();
+
+    function togglePass() {
+      const input = document.getElementById('login-password');
+      const icon  = document.getElementById('eye-icon');
+      if (input.type === 'password') {
+        input.type     = 'text';
+        icon.className = 'ti ti-eye-off';
+      } else {
+        input.type     = 'password';
+        icon.className = 'ti ti-eye';
+      }
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+
+      const errEl  = document.getElementById('login-err');
+      const errMsg = document.getElementById('login-err-msg');
+      const loadEl = document.getElementById('login-loading');
+
+      errEl.style.display = 'none';
+
+      if (!username || !password) {
+        errMsg.textContent  = 'Username dan password wajib diisi';
+        errEl.style.display = 'flex';
+        return;
+      }
+
+      loadEl.style.display = 'flex';
+
+      try {
+        const response = await fetch(API_BASE + '/config/login.php', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Login gagal');
+        }
+
+        // Simpan sesi ke sessionStorage lalu pindah ke app
+        sessionStorage.setItem('sms_session', JSON.stringify({
+          token:    data.data.token,
+          username: data.data.username,
+          role:     data.data.role,
+        }));
+
+        window.location.href = './';
+
+      } catch (err) {
+        errMsg.textContent  = err.message || 'Login gagal';
+        errEl.style.display = 'flex';
+      } finally {
+        loadEl.style.display = 'none';
+      }
+    }
+  </script>
+
+</body>
+</html>

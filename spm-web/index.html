@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS — Supermarket Management System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Location CSS → style.css -->
+</head>
+<body>
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="page-dashboard" class="page">
+    <div class="topbar">
+      <div class="topbar-user">
+        <div class="avatar"><i class="ti ti-user"></i></div>
+        <div>
+          <p class="topbar-name" id="dash-username">—</p>
+          <p class="topbar-role" id="dash-role">—</p>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()" title="Keluar">
+        <i class="ti ti-logout"></i>
+      </button>
+    </div>
+    <div class="dash-wrap">
+      <p class="dash-title">Dashboard</p>
+      <p class="dash-sub">SMS — Supermarket Management System</p>
+      <div class="menu-list">
+        <button class="menu-btn" onclick="goPage('scan-in')">
+          <div class="menu-icon menu-icon-blue"><i class="ti ti-scan"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Scan In</p>
+            <p class="menu-desc">Scan barang masuk ke gudang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('scan-out')">
+          <div class="menu-icon menu-icon-red"><i class="ti ti-scan"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Scan Out</p>
+            <p class="menu-desc">Scan barang keluar dari gudang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('location')">
+          <div class="menu-icon menu-icon-green"><i class="ti ti-map-pin"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Location</p>
+            <p class="menu-desc">Kelola lokasi & rak barang</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+        <button class="menu-btn" onclick="goPage('report')">
+          <div class="menu-icon menu-icon-amber"><i class="ti ti-chart-bar"></i></div>
+          <div class="menu-text">
+            <p class="menu-title">Mutation Report</p>
+            <p class="menu-desc">Data stock hari ini</p>
+          </div>
+          <i class="ti ti-chevron-right menu-arrow"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCAN IN ========== -->
+  <div id="page-scan-in" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Scan In</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+
+      <div class="card">
+        <div class="flowchart">
+          <div class="flow-step active" id="fl-box"><i class="ti ti-package"></i> Scan Box</div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="flow-step" id="fl-bag"><i class="ti ti-scan"></i> Scan Bag</div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="flow-step" id="fl-done"><i class="ti ti-circle-check"></i> Selesai</div>
+        </div>
+      </div>
+
+      <div id="si-box-active" class="alert alert-info" style="display:none">
+        <i class="ti ti-package"></i>
+        <div>
+          <p class="alert-label">Box Aktif</p>
+          <p class="alert-val" id="si-box-info"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row-between mb8">
+          <p class="form-label mb0">Barcode</p>
+          <span id="si-hint" class="hint-badge">Scan box atau bag</span>
+        </div>
+        <div class="scan-row">
+          <div class="input-wrap flex1">
+            <i class="ti ti-barcode"></i>
+            <input id="si-input" type="text" placeholder="BOX-xxx atau 0211xxxxxxxxx"
+              onkeydown="if(event.key==='Enter')siScan()" />
+          </div>
+          <button class="btn-scan" onclick="siScan()">
+            <i class="ti ti-scan"></i> Scan
+          </button>
+        </div>
+        <p id="si-err" class="err-text" style="display:none"></p>
+        <div id="si-ok" class="alert alert-success mt8" style="display:none">
+          <i class="ti ti-circle-check"></i><span id="si-ok-msg"></span>
+        </div>
+      </div>
+
+      <div id="si-loading" class="loading card" style="display:none">
+        <i class="ti ti-loader spin"></i><span>Mengirim ke server...</span>
+      </div>
+
+      <div class="card">
+        <div class="row-between mb10">
+          <p class="section-title mb0">DATA SCAN IN</p>
+          <span class="badge-loc">
+            <i class="ti ti-map-pin" style="font-size:11px"></i> Temporary
+          </span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Barcode Bag</th>
+              <th>Lotcode</th>
+              <th class="tc">QTY</th>
+              <th class="tc">Size</th>
+              <th class="tc">Nilai</th>
+              <th>ID Box</th>
+              <th style="width:28px"></th>
+            </tr></thead>
+            <tbody id="si-tbody">
+              <tr><td colspan="7" class="empty-cell">Belum ada data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="si-total" class="total-row" style="display:none">
+          <span>Total: <strong id="si-total-bag">0</strong> bag</span>
+          <span>Total: <strong id="si-total-pairs">0</strong> pairs</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== SCAN OUT ========== -->
+  <div id="page-scan-out" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Scan Out</p>
+      <div style="width:80px"></div>
+    </div>
+    <div class="content-wrap">
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Line <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="ti ti-line-dotted"></i>
+            <select id="so-line" class="native-select">
+              <option value="">-- Pilih Line --</option>
+            </select>
+          </div>
+          <p id="so-line-err" class="err-text" style="display:none">Line wajib dipilih</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lot Code <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="ti ti-tag"></i>
+            <input id="so-lotcode" type="text" placeholder="Masukkan lot code" />
+          </div>
+          <p id="so-lot-err" class="err-text" style="display:none">Lot code wajib diisi</p>
+        </div>
+        <div class="form-group mb0">
+          <label class="form-label">Nomor Barcode Bag <span class="req">*</span></label>
+          <div class="scan-row">
+            <div class="input-wrap flex1">
+              <i class="ti ti-barcode"></i>
+              <input id="so-barcode" type="text" placeholder="0211xxxxxxxxx"
+                onkeydown="if(event.key==='Enter')soScan()" />
+            </div>
+            <button class="btn-scan" onclick="soScan()">
+              <i class="ti ti-scan"></i> Scan
+            </button>
+          </div>
+          <p id="so-bc-err" class="err-text" style="display:none"></p>
+        </div>
+      </div>
+
+      <div id="so-loading" class="loading card" style="display:none">
+        <i class="ti ti-loader spin"></i><span>Mengirim ke server...</span>
+      </div>
+
+      <div id="so-ok" class="alert alert-success" style="display:none;margin-bottom:10px">
+        <i class="ti ti-circle-check"></i><span id="so-ok-msg"></span>
+      </div>
+
+      <div class="card">
+        <p class="section-title">DATA BON OUT</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Barcode</th>
+              <th>Lotcode</th>
+              <th class="tc">QTY</th>
+              <th class="tc">Size</th>
+              <th class="tc">Nilai</th>
+              <th>Line</th>
+              <th style="width:28px"></th>
+            </tr></thead>
+            <tbody id="so-tbody">
+              <tr><td colspan="7" class="empty-cell">Belum ada data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="so-total" class="total-row" style="display:none">
+          <span>Total: <strong id="so-total-bag">0</strong> bag</span>
+          <span>Total: <strong id="so-total-pairs">0</strong> pairs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LOCATION ========== -->
+  <div id="page-location" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Location</p>
+      <button onclick="locModalOpen()" style="display:flex;align-items:center;gap:5px;padding:0 14px;height:34px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">
+        <i class="ti ti-plus" style="font-size:14px"></i> Tambah
+      </button>
+    </div>
+
+    <!-- Modal Tambah Lokasi -->
+    <div id="loc-modal-overlay" onclick="locModalClose()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200"></div>
+    <div id="loc-modal" style="display:none;position:fixed;inset:0;z-index:201;align-items:center;justify-content:center;padding:16px">
+      <div style="background:var(--card);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)">
+
+        <!-- Modal Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center">
+              <i class="ti ti-map-pin" style="font-size:17px;color:var(--blue)"></i>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">Tambah Data Lokasi</div>
+              <div style="font-size:11px;color:var(--t4)" id="loc-modal-sub">Pilih lokasi dan scan box</div>
+            </div>
+          </div>
+          <button onclick="locModalClose()" style="border:none;background:var(--bg);border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3)">
+            <i class="ti ti-x" style="font-size:15px"></i>
+          </button>
+        </div>
+
+        <!-- Dropdown Lokasi -->
+        <div style="padding:14px 18px 0">
+          <label style="font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.05em">Lokasi Rak</label>
+          <div style="position:relative;margin-top:6px">
+            <i class="ti ti-map-pin" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--t4);pointer-events:none"></i>
+            <select id="loc-modal-rak" onchange="locModalRakChange()"
+              style="width:100%;padding:9px 10px 9px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--t1);background:var(--bg);outline:none;cursor:pointer;appearance:none">
+              <option value="">— Pilih lokasi —</option>
+              <option value="Temporary">Temporary</option>
+              <optgroup label="Zona A">
+                <option value="A-01">A-01</option><option value="A-02">A-02</option><option value="A-03">A-03</option>
+                <option value="A-04">A-04</option><option value="A-05">A-05</option><option value="A-06">A-06</option>
+                <option value="A-07">A-07</option><option value="A-08">A-08</option><option value="A-09">A-09</option>
+                <option value="A-10">A-10</option>
+              </optgroup>
+              <optgroup label="Zona B">
+                <option value="B-01">B-01</option><option value="B-02">B-02</option><option value="B-03">B-03</option>
+                <option value="B-04">B-04</option><option value="B-05">B-05</option><option value="B-06">B-06</option>
+                <option value="B-07">B-07</option><option value="B-08">B-08</option><option value="B-09">B-09</option>
+                <option value="B-10">B-10</option>
+              </optgroup>
+            </select>
+            <i class="ti ti-chevron-down" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--t4);pointer-events:none"></i>
+          </div>
+          <div id="loc-modal-rak-err" style="display:none;font-size:11px;color:var(--red);margin-top:4px"></div>
+        </div>
+
+        <!-- Scan Box -->
+        <div style="padding:12px 18px 0">
+          <label style="font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.05em">Scan Box</label>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <div style="position:relative;flex:1">
+              <i class="ti ti-barcode" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--t4);pointer-events:none"></i>
+              <input id="loc-modal-bc" type="text" placeholder="Scan atau ketik barcode box…"
+                onkeydown="if(event.key==='Enter')locModalScan()"
+                style="width:100%;padding:9px 10px 9px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--t1);background:var(--bg);outline:none;box-sizing:border-box" />
+            </div>
+            <button onclick="locModalScan()"
+              style="padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px">
+              <i class="ti ti-scan"></i> Scan
+            </button>
+          </div>
+          <div id="loc-modal-bc-err" style="display:none;font-size:11px;color:var(--red);margin-top:4px"></div>
+          <div id="loc-modal-ok" style="display:none;font-size:11px;color:var(--green);margin-top:4px;display:flex;align-items:center;gap:4px">
+            <i class="ti ti-circle-check" style="font-size:13px"></i>
+            <span id="loc-modal-ok-msg"></span>
+          </div>
+        </div>
+
+        <!-- Tabel Box -->
+        <div style="padding:14px 18px 0" id="loc-modal-tbl-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.05em">Data Box</span>
+            <span id="loc-modal-cnt" style="font-size:11px;color:var(--t3)">0 box</span>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed">
+              <thead>
+                <tr style="background:#f7f8fa">
+                  <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);width:22%">Box ID</th>
+                  <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)">Lotcode</th>
+                  <th style="padding:7px 10px;text-align:center;font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);width:18%">Size</th>
+                  <th style="padding:7px 10px;text-align:right;font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);width:14%">Total</th>
+                  <th style="padding:7px 10px;width:36px;border-bottom:1px solid var(--border)"></th>
+                </tr>
+              </thead>
+              <tbody id="loc-modal-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--t4);font-size:12px">Belum ada box</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:14px 18px 18px;display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="locModalClose()"
+            style="padding:9px 18px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--t2);font-size:13px;font-weight:500;cursor:pointer">
+            Batal
+          </button>
+          <button id="loc-modal-save" onclick="locModalSave()"
+            style="padding:9px 20px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;opacity:.45;pointer-events:none">
+            <i class="ti ti-device-floppy"></i> Simpan
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="loc-main">
+      <!-- Search -->
+      <div class="loc-search-wrap" style="margin-bottom:10px">
+        <i class="ti ti-search loc-search-icon"></i>
+        <input class="loc-search-input" id="locSearchInput" type="text"
+          placeholder="Cari ID rak atau lotcode…" oninput="locApplyFilter()" />
+      </div>
+
+      <!-- Filter chips -->
+      <div class="loc-chips">
+        <div class="loc-chip active" id="loc-chip-all"      onclick="locSetStatus('all')">     <span class="loc-dot" style="background:var(--t4)"></span>Semua</div>
+        <div class="loc-chip"        id="loc-chip-kosong"   onclick="locSetStatus('kosong')">  <span class="loc-dot" style="background:var(--green)"></span>Kosong</div>
+        <div class="loc-chip"        id="loc-chip-sebagian" onclick="locSetStatus('sebagian')"><span class="loc-dot" style="background:var(--amber)"></span>Sebagian</div>
+        <div class="loc-chip"        id="loc-chip-penuh"    onclick="locSetStatus('penuh')">   <span class="loc-dot" style="background:var(--red)"></span>Penuh</div>
+      </div>
+
+      <!-- Zona list rendered by JS -->
+      <div id="loc-zones"></div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="loc-overlay" onclick="locCloseSheet()"></div>
+
+    <!-- Bottom sheet -->
+    <div id="loc-sheet">
+      <div class="loc-sheet-drag"></div>
+      <div class="loc-sheet-head">
+        <div class="loc-sheet-icon"><i class="ti ti-package"></i></div>
+        <div class="loc-sheet-titles">
+          <div class="loc-sheet-lotcode" id="locSheetLotcode"></div>
+          <div class="loc-sheet-meta"    id="locSheetMeta"></div>
+        </div>
+        <div class="loc-sheet-close" onclick="locCloseSheet()">
+          <i class="ti ti-x"></i>
+        </div>
+      </div>
+      <div class="loc-sheet-body" id="locSheetBody"></div>
+    </div>
+  </div>
+
+  <!-- ========== REPORT ========== -->
+  <!-- Calendar overlay (shared, di luar page agar z-index bebas) -->
+  <div class="cal-overlay" id="rpt-cal-overlay" onclick="rptCalClose(event)">
+    <div class="cal-popup" id="rpt-cal-popup">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="rptCalMonth(-1)">&#8249;</button>
+        <span class="cal-month-year" id="rpt-cal-title"></span>
+        <button class="cal-nav" onclick="rptCalMonth(1)">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="rpt-cal-grid"></div>
+      <button class="cal-today-btn" onclick="rptCalToday()">Hari Ini</button>
+    </div>
+  </div>
+
+  <div id="page-report" class="page">
+    <div class="topbar">
+      <button class="btn-back" onclick="goPage('dashboard')">
+        <i class="ti ti-arrow-left"></i> Kembali
+      </button>
+      <p class="topbar-title">Mutation Report</p>
+      <button class="btn-back" onclick="rptRefresh()" style="border-color:var(--blue-bd);color:var(--blue-t);background:var(--blue-bg)">
+        <i class="ti ti-refresh" id="rpt-refresh-icon"></i>
+      </button>
+    </div>
+
+    <div class="content-wrap">
+
+      <!-- Header: tanggal + badge live -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <button class="rpt-date-btn" id="rpt-date-btn" onclick="rptCalOpen()">
+          <i class="ti ti-calendar"></i>
+          <span id="rpt-date">—</span>
+          <span class="rpt-date-caret">▾</span>
+        </button>
+        <span style="font-size:10px;background:var(--green-bg);color:var(--green-t);border-radius:99px;padding:2px 8px;font-weight:600">● LIVE</span>
+      </div>
+
+      <!-- Stat cards: 2 kolom atas, sisa stok full bawah -->
+      <div class="stat-grid">
+        <div class="stat-card rpt-in">
+          <div class="stat-icon ic-in"><i class="ti ti-arrow-bar-to-down"></i></div>
+          <div class="stat-label">Scan IN</div>
+          <div class="stat-val v-green" id="rpt-in-val">—</div>
+          <div class="stat-sub" id="rpt-in-sub">—</div>
+          <div class="stat-mini-bar"><div class="stat-mini-bar-fill" id="rpt-bar-in" style="background:var(--green);width:0%"></div></div>
+        </div>
+        <div class="stat-card rpt-out">
+          <div class="stat-icon ic-out"><i class="ti ti-arrow-bar-up"></i></div>
+          <div class="stat-label">Scan OUT</div>
+          <div class="stat-val v-red" id="rpt-out-val">—</div>
+          <div class="stat-sub" id="rpt-out-sub">—</div>
+          <div class="stat-mini-bar"><div class="stat-mini-bar-fill" id="rpt-bar-out" style="background:var(--red);width:0%"></div></div>
+        </div>
+        <div class="stat-card rpt-stk rpt-full">
+          <div class="stat-inner">
+            <div class="stat-icon ic-stk"><i class="ti ti-package"></i></div>
+            <div class="stat-body">
+              <div class="stat-label">Sisa Stok</div>
+              <div class="stat-val v-purple" id="rpt-stock-val">—</div>
+              <div class="stat-sub" id="rpt-stock-sub">—</div>
+              <div class="stat-mini-bar"><div class="stat-mini-bar-fill" id="rpt-bar-stk" style="background:#7c3aed;width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="rpt-tab-row">
+        <button class="rpt-tab-btn active" id="rpt-tab-resume" onclick="rptSwitchTab('resume')">
+          <i class="ti ti-table"></i> Resume
+        </button>
+        <button class="rpt-tab-btn" id="rpt-tab-grafik" onclick="rptSwitchTab('grafik')">
+          <i class="ti ti-chart-bar"></i> Grafik Target
+        </button>
+      </div>
+
+      <!-- Tab Resume -->
+      <div id="rpt-view-resume">
+        <div class="card" id="rpt-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <p style="font-size:13px;font-weight:600;color:var(--t1)">Tabel Resume</p>
+            <button onclick="rptExport()" class="btn-export">
+              <i class="ti ti-photo-down" style="font-size:13px"></i> Ekspor
+            </button>
+          </div>
+          <div class="filter-row">
+            <div class="search-wrap">
+              <i class="ti ti-search"></i>
+              <input id="rpt-search" type="text" placeholder="Cari lotcode / line…" oninput="rptRender()">
+            </div>
+            <select id="rpt-line" onchange="rptRender()"
+              style="border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;font-size:12px;color:var(--t2);background:var(--card);outline:none;cursor:pointer">
+              <option value="">Semua Line</option>
+            </select>
+          </div>
+          <div class="tbl-scroll" id="rpt-tbl-wrap">
+            <table id="rpt-table">
+              <thead><tr>
+                <th>Line</th>
+                <th>Lotcode</th>
+                <th class="tr">QTY</th>
+                <th class="tr">IN</th>
+                <th class="tr">OUT</th>
+                <th class="tr">Sisa</th>
+              </tr></thead>
+              <tbody id="rpt-tbody"></tbody>
+              <tfoot id="rpt-tfoot"></tfoot>
+            </table>
+          </div>
+          <div class="foot-row">
+            <span><strong id="rpt-showing">0</strong> baris</span>
+            <span>Sisa: <strong id="rpt-net" style="color:var(--blue-t)">0 pairs</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Grafik Target -->
+      <div id="rpt-view-grafik" style="display:none">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <p style="font-size:13px;font-weight:600;color:var(--t1)">Target Pengeluaran per Line</p>
+            <span style="font-size:10px;color:var(--t4)">OUT vs Target</span>
+          </div>
+          <div class="rpt-summary-box">
+            <div class="rpt-sum-item">
+              <div class="rpt-sum-label">Target</div>
+              <div class="rpt-sum-val" id="rpt-g-target">—</div>
+              <div class="rpt-sum-sub">pairs</div>
+            </div>
+            <div class="rpt-sum-item">
+              <div class="rpt-sum-label">Total OUT</div>
+              <div class="rpt-sum-val" id="rpt-g-actual" style="color:var(--red-t)">—</div>
+              <div class="rpt-sum-sub">pairs</div>
+            </div>
+            <div class="rpt-sum-item">
+              <div class="rpt-sum-label">Pencapaian</div>
+              <div class="rpt-sum-val" id="rpt-g-pct">—</div>
+              <div class="rpt-sum-sub">dari target</div>
+            </div>
+          </div>
+          <div class="rpt-chart-legend">
+            <span class="rpt-leg-item"><span class="rpt-leg-dot" style="background:var(--green)"></span>≥ 80%</span>
+            <span class="rpt-leg-item"><span class="rpt-leg-dot" style="background:var(--amber)"></span>50–79%</span>
+            <span class="rpt-leg-item"><span class="rpt-leg-dot" style="background:var(--red)"></span>&lt; 50%</span>
+          </div>
+          <div id="rpt-prog-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Core: config, API, helpers, navigasi, session -->
+  <script src="app.js"></script>
+  <!-- Per halaman -->
+  <script src="scan-in.js"></script>
+  <script src="scan-out.js"></script>
+  <script src="location.js"></script>
+  <script src="report.js"></script>
+</body>
+</html>
