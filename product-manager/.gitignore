@@ -1,0 +1,18 @@
+# Konfigurasi database (WAJIB - jangan sampai ke-push!)
+config/database.php
+
+# Environment file
+.env
+*.env
+
+# Log files
+*.log
+error_log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
