@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manajemen Produk</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222;
+      --border: #2a2a2a;
+      --accent: #c8f135;
+      --accent2: #ff6b35;
+      --text: #f0f0f0;
+      --text-muted: #666;
+      --danger: #ff4444;
+      --success: #22c55e;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+    .badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      background: var(--accent);
+      color: #0f0f0f;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .page-title span { color: var(--accent); }
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 36px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── Form Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input, textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0f0f0f;
+    }
+    .btn-primary:hover { background: #d4f54a; transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.8rem;
+    }
+    .stat-chip strong {
+      color: var(--accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 1.1rem;
+      display: block;
+    }
+    .stat-chip span { color: var(--text-muted); }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface); }
+
+    .product-name { font-weight: 500; }
+    .price {
+      font-family: 'DM Mono', monospace;
+      color: var(--accent);
+    }
+    .stok-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+    }
+    .stok-ok { background: #22c55e22; color: var(--success); border: 1px solid #22c55e44; }
+    .stok-low { background: #ff6b3522; color: var(--accent2); border: 1px solid #ff6b3544; }
+    .stok-empty { background: #ff444422; color: var(--danger); border: 1px solid #ff444444; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .btn-edit {
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      transition: all 0.15s;
+    }
+    .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-del {
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      background: transparent;
+      border: 1px solid #ff444444;
+      color: var(--danger);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      transition: all 0.15s;
+    }
+    .btn-del:hover { background: #ff444422; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      z-index: 999;
+      max-width: 320px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #22c55e; color: #0f0f0f; }
+    #toast.error { background: var(--danger); color: #fff; }
+
+    /* ── Empty & Loading ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .loading-row td { text-align: center; color: var(--text-muted); padding: 48px; }
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      header { padding: 16px 20px; }
+      main { padding: 24px 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      .page-title { font-size: 1.8rem; }
+      .stats-bar { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Produk<span>.</span>app</div>
+  <div class="badge">GitHub Pages + PHP API</div>
+</header>
+
+<main>
+  <h1 class="page-title">Manajemen<br/><span>Produk</span></h1>
+  <p class="page-subtitle">// Frontend: GitHub Pages | Backend: InfinityFree PHP API</p>
+
+  <!-- Form Tambah / Edit -->
+  <div class="card">
+    <div class="card-title"><div class="dot"></div><span id="formTitle">Tambah Produk Baru</span></div>
+    <div class="form-grid">
+      <div>
+        <label>Nama Produk *</label>
+        <input type="text" id="nama" placeholder="Contoh: Laptop Gaming ASUS"/>
+      </div>
+      <div>
+        <label>Harga (Rp) *</label>
+        <input type="number" id="harga" placeholder="12500000" min="0"/>
+      </div>
+      <div>
+        <label>Stok</label>
+        <input type="number" id="stok" placeholder="0" min="0"/>
+      </div>
+      <div>
+        <label>Deskripsi</label>
+        <input type="text" id="deskripsi" placeholder="Deskripsi singkat produk"/>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">Tambah Produk</button>
+      <button class="btn btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="display:none">Batal</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-chip"><strong id="totalProduk">—</strong><span>Total Produk</span></div>
+    <div class="stat-chip"><strong id="totalStok">—</strong><span>Total Stok</span></div>
+    <div class="stat-chip"><strong id="totalNilai">—</strong><span>Total Nilai</span></div>
+  </div>
+
+  <!-- Tabel Produk -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nama Produk</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Deskripsi</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr class="loading-row">
+          <td colspan="6"><span class="spinner"></span>Memuat data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  // =============================================
+  // ⚙️  GANTI URL INI dengan URL backend kamu
+  // Contoh: https://namakamu.infinityfree.net/api
+  // =============================================
+  const API_URL = "https://namakamu.infinityfree.net/api/products.php";
+
+  let editId = null;
+
+  // ── Fetch semua produk ──
+  async function loadProducts() {
+    try {
+      const res = await fetch(API_URL);
+      const json = await res.json();
+      renderTable(json.data || []);
+      updateStats(json.data || []);
+    } catch (err) {
+      document.getElementById('tableBody').innerHTML = `
+        <tr class="loading-row">
+          <td colspan="6" style="color:#ff4444">
+            ⚠️ Gagal konek ke API.<br/>
+            <small style="color:#666">Pastikan URL backend di script sudah benar.</small>
+          </td>
+        </tr>`;
+    }
+  }
+
+  // ── Render tabel ──
+  function renderTable(products) {
+    const tbody = document.getElementById('tableBody');
+    if (!products.length) {
+      tbody.innerHTML = `
+        <tr class="loading-row">
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              Belum ada produk. Tambahkan produk pertama!
+            </div>
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = products.map((p, i) => {
+      const stokClass = p.stok == 0 ? 'stok-empty' : p.stok < 5 ? 'stok-low' : 'stok-ok';
+      const stokLabel = p.stok == 0 ? 'Habis' : p.stok < 5 ? `${p.stok} (Sedikit)` : p.stok;
+      const harga = Number(p.harga).toLocaleString('id-ID');
+      return `
+        <tr>
+          <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:0.75rem">${i+1}</td>
+          <td class="product-name">${escHtml(p.nama)}</td>
+          <td class="price">Rp ${harga}</td>
+          <td><span class="stok-badge ${stokClass}">${stokLabel}</span></td>
+          <td style="color:var(--text-muted);font-size:0.82rem">${escHtml(p.deskripsi || '—')}</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-edit" onclick="editProduct(${p.id},'${escHtml(p.nama)}',${p.harga},${p.stok},'${escHtml(p.deskripsi||'')}')">Edit</button>
+              <button class="btn-del" onclick="deleteProduct(${p.id}, '${escHtml(p.nama)}')">Hapus</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Update statistik ──
+  function updateStats(products) {
+    const totalStok = products.reduce((s, p) => s + Number(p.stok), 0);
+    const totalNilai = products.reduce((s, p) => s + Number(p.harga) * Number(p.stok), 0);
+    document.getElementById('totalProduk').textContent = products.length;
+    document.getElementById('totalStok').textContent = totalStok;
+    document.getElementById('totalNilai').textContent = 'Rp ' + totalNilai.toLocaleString('id-ID');
+  }
+
+  // ── Submit form (tambah / update) ──
+  async function submitForm() {
+    const nama = document.getElementById('nama').value.trim();
+    const harga = document.getElementById('harga').value;
+    const stok = document.getElementById('stok').value || 0;
+    const deskripsi = document.getElementById('deskripsi').value.trim();
+
+    if (!nama || !harga) { showToast('Nama dan harga wajib diisi!', 'error'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = editId ? 'Menyimpan...' : 'Menambahkan...';
+
+    try {
+      const url = editId ? `${API_URL}?id=${editId}` : API_URL;
+      const method = editId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama, harga: Number(harga), stok: Number(stok), deskripsi })
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        showToast(json.message || 'Berhasil!', 'success');
+        resetForm();
+        loadProducts();
+      } else {
+        showToast(json.message || 'Terjadi kesalahan', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal terhubung ke server', 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = editId ? 'Simpan Perubahan' : 'Tambah Produk';
+  }
+
+  // ── Edit produk ──
+  function editProduct(id, nama, harga, stok, deskripsi) {
+    editId = id;
+    document.getElementById('nama').value = nama;
+    document.getElementById('harga').value = harga;
+    document.getElementById('stok').value = stok;
+    document.getElementById('deskripsi').value = deskripsi;
+    document.getElementById('formTitle').textContent = `Edit Produk #${id}`;
+    document.getElementById('submitBtn').textContent = 'Simpan Perubahan';
+    document.getElementById('cancelBtn').style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Hapus produk ──
+  async function deleteProduct(id, nama) {
+    if (!confirm(`Hapus produk "${nama}"?`)) return;
+    try {
+      const res = await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Produk dihapus', 'success');
+        loadProducts();
+      } else {
+        showToast(json.message || 'Gagal menghapus', 'error');
+      }
+    } catch {
+      showToast('Gagal terhubung ke server', 'error');
+    }
+  }
+
+  // ── Reset form ──
+  function resetForm() {
+    editId = null;
+    ['nama','harga','stok','deskripsi'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('formTitle').textContent = 'Tambah Produk Baru';
+    document.getElementById('submitBtn').textContent = 'Tambah Produk';
+    document.getElementById('cancelBtn').style.display = 'none';
+  }
+
+  function cancelEdit() { resetForm(); }
+
+  // ── Toast notifikasi ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  // ── Escape HTML ──
+  function escHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // Load saat halaman dibuka
+  loadProducts();
+</script>
+</body>
+</html>
