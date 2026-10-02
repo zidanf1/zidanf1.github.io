@@ -40,6 +40,24 @@ tr:last-child td{border-bottom:0}
 .q{display:flex;align-items:center;gap:8px}.q span{flex:1}
 .mu{color:var(--mu);font-size:13px}
 .sep{height:12px}
+.seg{display:flex;gap:6px;margin-bottom:8px}.seg .btn{flex:1;padding:6px 4px}
+.btn.on{background:var(--pr);border-color:var(--pr);color:#fff}
+.ln{padding:8px 0;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{padding:2px 10px;border-radius:12px;border:1px solid var(--ok);background:color-mix(in srgb,var(--ok) 22%,var(--card))}
+.tag{font-size:12px;padding:1px 8px;border-radius:10px;border:1px solid var(--bd)}
+.tag.e{background:color-mix(in srgb,var(--ok) 25%,var(--card))}.tag.f{background:color-mix(in srgb,var(--dg) 30%,var(--card))}
+
+.map{display:grid;grid-template-columns:22px repeat(8,1fr);gap:3px;margin-bottom:12px}
+.ml{font-size:11px;color:var(--mu);text-align:center;align-self:center}
+.mc{height:30px;border-radius:4px;border:1px solid var(--bd);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--tx)}
+.mc.e{background:color-mix(in srgb,var(--ok) 30%,var(--card))}
+.mc.f{background:color-mix(in srgb,var(--dg) 35%,var(--card))}
+.mc.sel{outline:3px solid var(--pr);outline-offset:1px}
+.lg{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--bd);vertical-align:-2px;margin:0 4px 0 10px}
+.lg.e{background:color-mix(in srgb,var(--ok) 30%,var(--card))}.lg.f{background:color-mix(in srgb,var(--dg) 35%,var(--card))}
+tr.emp td{background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+tbody tr{scroll-margin-top:130px}
+
 #tblRak{table-layout:fixed;min-width:0}
 #tblRak td,#tblRak th{padding:10px 6px;overflow:hidden;text-overflow:ellipsis}
 #tblRak th:nth-child(1){width:76px}
@@ -65,6 +83,7 @@ tr:last-child td{border-bottom:0}
 </div></div>
 
 <div class="card" id="cardRak"><div class="card-h">Stok Rak <span class="row"><button id="btnSort" class="btn">Urutkan Rak ↑</button><button id="btnAdd" class="btn ok">+ Baris</button></span></div>
+<div class="card-b" style="padding:8px 12px;border-bottom:1px solid var(--bd)"><select id="fFilter"><option value="all">Semua</option><option value="kosong">Kosong</option><option value="isi">Terisi</option></select></div>
 <div class="scroll"><table id="tblRak"><thead><tr><th>IDRak</th><th>Model</th><th>Lotcode</th><th>Qty</th></tr></thead><tbody id="rowBody"></tbody></table></div></div>
 </div>
 <script>
@@ -87,7 +106,8 @@ function render(){
   const lotOptsAll=lots.map(x=>x.lot);
   $('rowBody').innerHTML=rows.map((r,i)=>{
     const l=lots.find(x=>x.lot===r.lot);
-    return `<tr><td><select onchange="upd(${i},'loc',this.value)">${LOCS.map(x=>`<option ${x===r.loc?'selected':''}>${x}</option>`).join('')}</select></td>
+    if((FIL==='kosong'&&l)||(FIL==='isi'&&!l))return '';
+    return `<tr id="r${i}" class="${l?'':'emp'}"><td><select onchange="upd(${i},'loc',this.value)">${LOCS.map(x=>`<option ${x===r.loc?'selected':''}>${x}</option>`).join('')}</select></td>
 <td>${l&&l.tipe?l.tipe:'-'}</td>
 <td><select onchange="upd(${i},'lot',this.value)"><option value="">-- pilih --</option>${lotOptsAll.map(x=>`<option value="${esc(x)}" ${x===r.lot?'selected':''}>${esc(x)}</option>`).join('')}</select></td>
 <td><div class="q"><span>${l?l.qty:'-'}</span><button class="btn d" onclick="delRow(${i})">&times;</button></div></td></tr>`}).join('');
@@ -96,6 +116,9 @@ function upd(i,k,v){rows[i][k]=v;save('gudang_rows',rows);render()}
 function delRow(i){rows.splice(i,1);save('gudang_rows',rows);render()}
 function delLot(i){const l=lots[i].lot;lots.splice(i,1);rows.forEach(r=>{if(r.lot===l)r.lot=''});save('gudang_lots',lots);save('gudang_rows',rows);render()}
 $('btnAdd').onclick=()=>{rows.push({loc:'A1-1',lot:''});save('gudang_rows',rows);render()};
+
+let FIL='all';
+$('fFilter').onchange=e=>{FIL=e.target.value;render()};
 $('fTipe').innerHTML+=TIPE.map(x=>`<option>${x}</option>`).join('');
 let asc=true;
 $('btnSort').onclick=()=>{rows.sort((a,b)=>(LOCS.indexOf(a.loc)-LOCS.indexOf(b.loc))*(asc?1:-1));asc=!asc;$('btnSort').textContent='Urutkan Rak '+(asc?'↑':'↓');save('gudang_rows',rows);render()};
