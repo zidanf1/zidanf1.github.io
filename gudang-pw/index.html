@@ -10,7 +10,6 @@
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000000;--card:#111111;--tx:#ffffff;--mu:#aaaaaa;--bd:#444444;--pr:#0d6efd;--dg:#ff6b6b;--ok:#198754;--hv:#222222;color-scheme:dark;}}
 :root[data-theme="dark"]{--bg:#000000;--card:#111111;--tx:#ffffff;--mu:#aaaaaa;--bd:#444444;--pr:#0d6efd;--dg:#ff6b6b;--ok:#198754;--hv:#222222;color-scheme:dark;}
-tbody tr:hover td{background:var(--hv)}
 input:focus,select:focus{outline:2px solid color-mix(in srgb,var(--pr) 45%,transparent);outline-offset:0;border-color:var(--pr)}
 ::placeholder{color:var(--mu);opacity:.8}
 *,*:before,*:after{box-sizing:inherit}
@@ -55,6 +54,10 @@ tr:last-child td{border-bottom:0}
 .mc.sel{outline:3px solid var(--pr);outline-offset:1px}
 .lg{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--bd);vertical-align:-2px;margin:0 4px 0 10px}
 .lg.e{background:color-mix(in srgb,var(--ok) 30%,var(--card))}.lg.f{background:color-mix(in srgb,var(--dg) 35%,var(--card))}
+tr.fl td{background:color-mix(in srgb,var(--pr) 16%,var(--card))}
+tr.ed td{border-top:0}
+tbody tr{cursor:pointer}tbody tr.ed{cursor:default}
+.edit{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.edit label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--mu);flex:1;min-width:110px}
 tr.emp td{background:color-mix(in srgb,var(--ok) 14%,var(--card))}
 tbody tr{scroll-margin-top:130px}
 
@@ -107,21 +110,20 @@ function render(){
   $('rowBody').innerHTML=rows.map((r,i)=>{
     const l=lots.find(x=>x.lot===r.lot);
     if((FIL==='kosong'&&l)||(FIL==='isi'&&!l))return '';
-    return `<tr id="r${i}" class="${l?'':'emp'}"><td><select onchange="upd(${i},'loc',this.value)">${LOCS.map(x=>`<option ${x===r.loc?'selected':''}>${x}</option>`).join('')}</select></td>
-<td>${l&&l.tipe?l.tipe:'-'}</td>
-<td><select onchange="upd(${i},'lot',this.value)"><option value="">-- pilih --</option>${lotOptsAll.map(x=>`<option value="${esc(x)}" ${x===r.lot?'selected':''}>${esc(x)}</option>`).join('')}</select></td>
-<td><div class="q"><span>${l?l.qty:'-'}</span><button class="btn d" onclick="delRow(${i})">&times;</button></div></td></tr>`}).join('');
+    const c=l?'fl':'emp';
+    return `<tr id="r${i}" class="${c}" onclick="tog(${i})"><td><b>${r.loc}</b></td><td>${l&&l.tipe?l.tipe:'-'}</td><td>${l?esc(l.lot):'<span class="mu">kosong</span>'}</td><td>${l?l.qty:'-'}</td></tr>`+(EX===i?`<tr class="${c} ed"><td colspan="4"><div class="edit"><label>IDRak<select onchange="upd(${i},'loc',this.value)">${LOCS.map(x=>`<option ${x===r.loc?'selected':''}>${x}</option>`).join('')}</select></label><label>Lotcode<select onchange="upd(${i},'lot',this.value)"><option value="">-- pilih --</option>${lotOptsAll.map(x=>`<option value="${esc(x)}" ${x===r.lot?'selected':''}>${esc(x)}</option>`).join('')}</select></label><button class="btn d" onclick="delRow(${i})">Hapus baris</button></div></td></tr>`:'');}).join('');
 }
 function upd(i,k,v){rows[i][k]=v;save('gudang_rows',rows);render()}
-function delRow(i){rows.splice(i,1);save('gudang_rows',rows);render()}
+function tog(i){EX=EX===i?-1:i;render()}
+function delRow(i){EX=-1;rows.splice(i,1);save('gudang_rows',rows);render()}
 function delLot(i){const l=lots[i].lot;lots.splice(i,1);rows.forEach(r=>{if(r.lot===l)r.lot=''});save('gudang_lots',lots);save('gudang_rows',rows);render()}
-$('btnAdd').onclick=()=>{rows.push({loc:'A1-1',lot:''});save('gudang_rows',rows);render()};
+$('btnAdd').onclick=()=>{rows.push({loc:'A1-1',lot:''});EX=rows.length-1;FIL='all';$('fFilter').value='all';save('gudang_rows',rows);render();const el=$('r'+EX);if(el)el.scrollIntoView({behavior:'smooth',block:'center'})};
 
-let FIL='all';
+let FIL='all',EX=-1;
 $('fFilter').onchange=e=>{FIL=e.target.value;render()};
 $('fTipe').innerHTML+=TIPE.map(x=>`<option>${x}</option>`).join('');
 let asc=true;
-$('btnSort').onclick=()=>{rows.sort((a,b)=>(LOCS.indexOf(a.loc)-LOCS.indexOf(b.loc))*(asc?1:-1));asc=!asc;$('btnSort').textContent='Urutkan Rak '+(asc?'↑':'↓');save('gudang_rows',rows);render()};
+$('btnSort').onclick=()=>{rows.sort((a,b)=>(LOCS.indexOf(a.loc)-LOCS.indexOf(b.loc))*(asc?1:-1));asc=!asc;EX=-1;$('btnSort').textContent='Urutkan Rak '+(asc?'↑':'↓');save('gudang_rows',rows);render()};
 $('fLot').oninput=e=>{const s=e.target.selectionStart;e.target.value=e.target.value.toUpperCase();e.target.setSelectionRange(s,s)};
 $('btnSave').onclick=()=>{
   const lot=$('fLot').value.trim().toUpperCase(),qty=Number($('fQty').value),tipe=$('fTipe').value;
