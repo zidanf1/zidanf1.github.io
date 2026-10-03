@@ -149,7 +149,7 @@ function exportRows(){
 }
 function waText(){
   const SEP='='.repeat(27);
-  return [fmtDT(UPD?new Date(UPD):new Date()),SEP,...exportRows().map(r=>`${r.loc} . ${r.lot} ${r.qty}`),'',SEP].join('\n');
+  return [fmtDT(UPD?new Date(UPD):new Date()),SEP,...exportRows().map(r=>`${r.loc} . ${r.lot} Qty ${r.qty}`),'',SEP].join('\n');
 }
 $('btnWA').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(waText()),'_blank');
 function makeShot(){
