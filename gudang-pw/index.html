@@ -52,11 +52,11 @@ input,select,button{font:inherit}
 /* ===== Kartu, tombol, input ===== */
 .info{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:14px}
-.card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700}
+.card-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700}
 .card-body{padding:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .full{flex:1 1 100%}
-input,select{color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+input,select{color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
 input:focus,select:focus{outline:2px solid var(--accent);outline-offset:0}
 #inputLot{text-transform:uppercase}
 .btn{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:6px 12px;white-space:nowrap}
@@ -87,6 +87,12 @@ tr.panel-edit td{border-top:0}
 .kosong{color:#0f5132;background:#d1e7dd;font-weight:700;padding:2px 8px;border-radius:10px;font-size:13px;white-space:nowrap}
 .edit{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .edit label{display:flex;flex-direction:column;gap:2px;flex:1;min-width:110px;font-size:12px}
+
+/* ===== Daftar lotcode di halaman form (tidak boleh melebar keluar layar) ===== */
+.geser{overflow-x:auto;margin-top:10px}
+#tabelLot th,#tabelLot td{padding:8px 4px}
+#tabelLot td:first-child{overflow-wrap:anywhere}
+#tabelLot td:last-child{width:1%;white-space:nowrap;text-align:right}
 
 /* ===== Pratinjau screenshot ===== */
 #kotakGambar{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:40;overflow:auto;padding:16px;background:rgba(0,0,0,.6)}
@@ -131,10 +137,11 @@ tr.panel-edit td{border-top:0}
           <button class="btn utama" onclick="simpanLotcode()">Simpan</button>
         </div>
         <div id="pesan" class="muted" style="margin-top:6px"></div>
-        <table style="margin-top:10px">
-          <thead><tr><th>Lotcode</th><th>Type</th><th>Qty</th><th></th></tr></thead>
-          <tbody id="isiDaftarLot"></tbody>
-        </table>
+        <div class="geser">
+          <table id="tabelLot">
+            <tbody id="isiDaftarLot"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -455,17 +462,16 @@ function buatPilihanTipe() {
 // Menampilkan daftar lotcode yang sudah disimpan
 function tampilkanDaftarLot() {
   if (daftarLot.length === 0) {
-    el('isiDaftarLot').innerHTML = '<tr><td colspan="4" class="muted">Belum ada lotcode</td></tr>';
+    el('isiDaftarLot').innerHTML = '<tr><td colspan="2" class="muted">Belum ada lotcode</td></tr>';
     return;
   }
   var html = '';
   for (var i = 0; i < daftarLot.length; i++) {
     var lot = daftarLot[i];
+    // Kiri: lotcode (tebal) lalu type dan qty di bawahnya. Kanan: tombol Hapus.
     html += '<tr>';
-    html += '<td>' + aman(lot.lot) + '</td>';
-    html += '<td>' + (lot.tipe ? lot.tipe : '-') + '</td>';
-    html += '<td>' + lot.qty + '</td>';
-    html += '<td style="text-align:right"><button class="btn merah" onclick="hapusLot(' + i + ')">Hapus</button></td>';
+    html += '<td><b>' + aman(lot.lot) + '</b><div class="muted">' + (lot.tipe ? lot.tipe : '-') + ' · Qty ' + lot.qty + '</div></td>';
+    html += '<td><button class="btn merah" onclick="hapusLot(' + i + ')">Hapus</button></td>';
     html += '</tr>';
   }
   el('isiDaftarLot').innerHTML = html;
