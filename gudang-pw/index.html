@@ -83,16 +83,26 @@ tr.data{cursor:pointer}
 tr.z0 td{background:var(--strip)}
 tr.z1 td{background:var(--card)}
 tr.garis td{border-top:3px solid var(--dark)}
-tr.panel-edit td{border-top:0}
 .kosong{color:#0f5132;background:#d1e7dd;font-weight:700;padding:2px 8px;border-radius:10px;font-size:13px;white-space:nowrap}
-.edit{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
-.edit label{display:flex;flex-direction:column;gap:2px;flex:1;min-width:110px;font-size:12px}
 
 /* ===== Daftar lotcode di halaman form (tidak boleh melebar keluar layar) ===== */
 .geser{overflow-x:auto;margin-top:10px}
 #tabelLot th,#tabelLot td{padding:8px 4px}
 #tabelLot td:first-child{overflow-wrap:anywhere}
 #tabelLot td:last-child{width:1%;white-space:nowrap;text-align:right}
+
+/* ===== Popup ubah data ===== */
+#kotakEdit{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:50;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.55)}
+.modal-box{display:flex;flex-direction:column;width:100%;max-width:440px;max-height:100%;background:var(--card);border-radius:10px;overflow:hidden}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.modal-body{padding:4px 14px 12px;overflow-y:auto}
+.modal-foot{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.spacer{flex:1}
+.field{display:flex;flex-direction:column;gap:4px;margin-top:12px;font-size:13px;color:var(--muted)}
+.daftar-pilih{max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:6px;margin-top:6px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+.item b{overflow-wrap:anywhere}
+.item.aktif{background:var(--strip);outline:2px solid var(--accent);outline-offset:-2px}
 
 /* ===== Pratinjau screenshot ===== */
 #kotakGambar{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:40;overflow:auto;padding:16px;background:rgba(0,0,0,.6)}
@@ -187,6 +197,25 @@ tr.panel-edit td{border-top:0}
   </div>
 </div>
 
+<!-- Popup ubah data -->
+<div id="kotakEdit">
+  <div class="modal-box">
+    <div class="modal-head"><b id="judulEdit">Ubah Data</b><button class="btn" onclick="tutupEdit()">✕</button></div>
+    <div class="modal-body">
+      <label class="field">IDRak<select id="pilihLokasi"></select></label>
+      <div class="field">Lotcode</div>
+      <input id="inputCariLot" placeholder="Cari lotcode..." oninput="gambarDaftarLotEdit()">
+      <div id="daftarPilihLot" class="daftar-pilih"></div>
+    </div>
+    <div class="modal-foot">
+      <button id="tombolHapusEdit" class="btn merah" onclick="hapusDariEdit()">Hapus</button>
+      <span class="spacer"></span>
+      <button class="btn" onclick="tutupEdit()">Batal</button>
+      <button class="btn utama" onclick="simpanEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =====================================================
 // 1. DATA TETAP
@@ -256,7 +285,6 @@ var waktuUpdate = bacaData('gudang_upd', null); // waktu perubahan data terakhir
 
 // Keadaan tampilan saat ini
 var temaAktif = TEMA['Biru'];  // tema yang sedang dipakai
-var barisTerbuka = -1;         // nomor baris tabel yang sedang dibuka (-1 = tidak ada)
 var urutNaik = true;           // arah urutan rak berikutnya
 var filterStatus = 'all';
 var filterModel = '';
@@ -551,31 +579,7 @@ function ubahFilter() {
   filterStatus = el('filterStatus').value;
   filterModel = el('filterModel').value;
   filterLot = el('filterLot').value;
-  barisTerbuka = -1;
   tampilkanTabel();
-}
-
-// Membuat panel edit yang muncul di bawah baris yang dibuka
-function buatPanelEdit(nomor, rak, warna) {
-  var pilihBelum = (rak.loc === BELUM_MASUK) ? ' selected' : '';
-  var pilihanLokasi = '<option value="' + BELUM_MASUK + '"' + pilihBelum + '>' + BELUM_MASUK + '</option>';
-  for (var i = 0; i < LOKASI.length; i++) {
-    var pilihL = (LOKASI[i] === rak.loc) ? ' selected' : '';
-    pilihanLokasi += '<option' + pilihL + '>' + LOKASI[i] + '</option>';
-  }
-
-  var pilihanLot = '<option value="">-- pilih --</option>';
-  for (var j = 0; j < daftarLot.length; j++) {
-    var pilihT = (daftarLot[j].lot === rak.lot) ? ' selected' : '';
-    pilihanLot += '<option value="' + aman(daftarLot[j].lot) + '"' + pilihT + '>' + aman(daftarLot[j].lot) + '</option>';
-  }
-
-  var html = '<tr class="panel-edit ' + warna + '"><td colspan="4"><div class="edit">';
-  html += '<label>IDRak<select onchange="ubahBaris(' + nomor + ', \'loc\', this.value)">' + pilihanLokasi + '</select></label>';
-  html += '<label>Lotcode<select onchange="ubahBaris(' + nomor + ', \'lot\', this.value)">' + pilihanLot + '</select></label>';
-  html += '<button class="btn merah" onclick="hapusBaris(' + nomor + ')">Hapus baris</button>';
-  html += '</div></td></tr>';
-  return html;
 }
 
 // Menggambar ulang tabel stok rak
@@ -615,60 +619,134 @@ function tampilkanTabel() {
       qty = lot.qty;
     }
 
-    html += '<tr class="data ' + warna + garis + '" id="r' + i + '" onclick="bukaTutupBaris(' + i + ')">';
+    html += '<tr class="data ' + warna + garis + '" id="r' + i + '" onclick="bukaEdit(' + i + ')">';
     html += '<td><b>' + rak.loc + '</b></td>';
     html += '<td>' + model + '</td>';
     html += '<td>' + teksLot + '</td>';
     html += '<td>' + qty + '</td>';
     html += '</tr>';
-
-    if (i === barisTerbuka) {
-      html += buatPanelEdit(i, rak, warna);
-    }
   }
 
   el('isiTabel').innerHTML = html;
 }
 
-// Ketuk baris: buka / tutup panel edit
-function bukaTutupBaris(nomor) {
-  if (barisTerbuka === nomor) {
-    barisTerbuka = -1;
-  } else {
-    barisTerbuka = nomor;
+// ----- Popup ubah data -----
+var editNomor = -1;     // nomor baris yang diubah
+var editBaru = false;   // true jika popup dibuka dari tombol "+ Baris"
+
+// Isi pilihan IDRak: Floor dulu, lalu A1-1 ... B10-8
+function buatOpsiLokasi(terpilih) {
+  var daftar = [BELUM_MASUK].concat(LOKASI);
+  var html = '';
+  for (var i = 0; i < daftar.length; i++) {
+    var pilih = (daftar[i] === terpilih) ? ' selected' : '';
+    html += '<option' + pilih + '>' + daftar[i] + '</option>';
   }
-  tampilkanTabel();
+  return html;
 }
 
-// Mengubah isi satu baris. "bidang" adalah 'loc' atau 'lot'.
-function ubahBaris(nomor, bidang, nilai) {
-  daftarRak[nomor][bidang] = nilai;
-  simpanRak();
-  tampilkanTabel();
+// Lotcode yang sedang dipilih di popup
+var editLot = '';
+
+// Mengetuk satu lotcode di daftar. nomor -1 = kosongkan lotcode.
+function pilihLotEdit(nomor) {
+  if (nomor < 0) {
+    editLot = '';
+  } else {
+    editLot = daftarLot[nomor].lot;
+  }
+  gambarDaftarLotEdit();
 }
 
-function tambahBaris() {
-  daftarRak.push({ loc: 'A1-1', lot: '' });
-  barisTerbuka = daftarRak.length - 1;
+// Menggambar daftar lotcode di popup (bisa dicari lewat kotak "Cari lotcode")
+function gambarDaftarLotEdit() {
+  var kata = el('inputCariLot').value.trim().toUpperCase();
+  var html = '<button class="item' + (editLot === '' ? ' aktif' : '') + '" onclick="pilihLotEdit(-1)">— Kosong (tanpa lotcode) —</button>';
+  for (var i = 0; i < daftarLot.length; i++) {
+    var lot = daftarLot[i];
+    if (kata !== '' && lot.lot.indexOf(kata) === -1) {
+      continue;
+    }
+    html += '<button class="item' + (lot.lot === editLot ? ' aktif' : '') + '" onclick="pilihLotEdit(' + i + ')">' +
+            '<b>' + aman(lot.lot) + '</b><span class="muted">' + (lot.tipe ? lot.tipe : '-') + ' · Qty ' + lot.qty + '</span></button>';
+  }
+  el('daftarPilihLot').innerHTML = html;
+}
 
-  // Reset filter supaya baris baru pasti terlihat
-  filterStatus = 'all';
-  filterModel = '';
-  filterLot = '';
-  el('filterStatus').value = 'all';
+// Membuka popup. nomor = baris yang diubah, atau -1 untuk baris baru.
+function bukaEdit(nomor) {
+  editNomor = nomor;
+  editBaru = (nomor < 0);
+
+  var lokasi = 'A1-1';
+  var lot = '';
+  if (!editBaru) {
+    lokasi = daftarRak[nomor].loc;
+    lot = daftarRak[nomor].lot;
+  }
+
+  editLot = lot;
+  el('judulEdit').textContent = editBaru ? 'Tambah Baris' : 'Ubah Data';
+  el('pilihLokasi').innerHTML = buatOpsiLokasi(lokasi);
+  el('inputCariLot').value = '';
+  gambarDaftarLotEdit();
+  el('tombolHapusEdit').style.display = editBaru ? 'none' : 'block';
+  el('kotakEdit').style.display = 'flex';
+
+  // Gulung daftar supaya lotcode yang terpilih terlihat
+  var aktif = el('daftarPilihLot').querySelector('.aktif');
+  if (aktif) {
+    aktif.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function tutupEdit() {
+  el('kotakEdit').style.display = 'none';
+}
+
+// Tombol Simpan di popup
+function simpanEdit() {
+  var lokasi = el('pilihLokasi').value;
+  var lot = editLot;
+  var nomorTampil = editNomor;
+
+  if (editBaru) {
+    daftarRak.push({ loc: lokasi, lot: lot });
+    nomorTampil = daftarRak.length - 1;
+
+    // Reset filter supaya baris baru pasti terlihat
+    filterStatus = 'all';
+    filterModel = '';
+    filterLot = '';
+    el('filterStatus').value = 'all';
+  } else {
+    daftarRak[editNomor].loc = lokasi;
+    daftarRak[editNomor].lot = lot;
+  }
 
   simpanRak();
+  tutupEdit();
   tampilkanTabel();
 
-  var baris = el('r' + barisTerbuka);
+  var baris = el('r' + nomorTampil);
   if (baris) {
     baris.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
+// Tombol Hapus di popup
+function hapusDariEdit() {
+  hapusBaris(editNomor);
+  tutupEdit();
+}
+
+// Tombol "+ Baris" membuka popup untuk baris baru
+function tambahBaris() {
+  bukaEdit(-1);
+}
+
 function hapusBaris(nomor) {
   daftarRak.splice(nomor, 1);
-  barisTerbuka = -1;
   simpanRak();
   tampilkanTabel();
 }
@@ -681,7 +759,6 @@ function urutkanRak() {
   });
   urutNaik = !urutNaik;
   el('tombolUrut').textContent = 'Urutkan Rak ' + (urutNaik ? '↑' : '↓');
-  barisTerbuka = -1;
   simpanData('gudang_rows', daftarRak);   // mengurutkan bukan perubahan data, waktu update tidak diubah
   tampilkanTabel();
 }
