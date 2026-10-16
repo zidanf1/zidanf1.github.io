@@ -1,0 +1,39 @@
+/* =====================================================
+   DASAR: warna, reset, huruf
+   Warna di bawah ini diganti otomatis oleh js/theme.js saat tema dipilih
+   (--bar, --strip, --dark, --page, --accent).
+   ===================================================== */
+:root {
+  /* Warna yang berubah menurut tema */
+  --bar: #4682b4;      /* bar atas */
+  --strip: #eaf1f8;    /* baris belang */
+  --dark: #36648b;     /* header tabel & garis pemisah */
+  --page: #ffffff;     /* latar halaman */
+  --accent: #4682b4;   /* tombol utama */
+
+  /* Warna tetap */
+  --card: #ffffff;
+  --text: #212529;
+  --muted: #6c757d;
+  --line: #dee2e6;
+  --green: #198754;
+  --red: #dc3545;
+
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *:before, *:after { box-sizing: inherit; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font: 15px/1.4 "Roboto", Arial, sans-serif;   /* Roboto = font tetap */
+}
+
+input, select, button { font: inherit; }
+
+.muted { color: var(--muted); font-size: 13px; }

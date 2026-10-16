@@ -1,0 +1,64 @@
+/* =====================================================
+   TATA LETAK: bar atas, menu, kartu
+   ===================================================== */
+.wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+/* ----- Bar atas ----- */
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  margin: -16px -16px 8px;
+  padding: 0 16px;
+  background: var(--bar);
+  color: #fff;
+}
+.top h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; color: #fff; }
+.top h1 img { width: 32px; height: 32px; border-radius: 8px; }
+
+.icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; padding: 0;
+  border-radius: 6px; cursor: pointer;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .55);
+}
+
+/* ----- Menu dropdown ----- */
+.menu {
+  position: absolute; right: 12px; top: 58px; z-index: 30;
+  min-width: 210px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .2);
+  overflow: hidden;
+}
+.menu-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 13px 14px;
+  background: var(--card); color: var(--text);
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+  text-align: left; cursor: pointer;
+}
+.menu-item:last-child { border-bottom: 0; }
+.menu-item.aktif { background: var(--strip); font-weight: 700; }
+
+/* ----- Baris judul halaman + waktu update ----- */
+.info { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 0 10px; }
+
+/* ----- Kartu ----- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 14px; }
+.card-head {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 10px 12px; border-bottom: 1px solid var(--line); font-weight: 700;
+}
+.card-body { padding: 12px; }
+
+/* ----- Baris isian (flex) ----- */
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.full { flex: 1 1 100%; }

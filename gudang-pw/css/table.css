@@ -1,0 +1,43 @@
+/* =====================================================
+   TABEL: Stok Rak (halaman 2) dan daftar lotcode (halaman 1)
+   ===================================================== */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 8px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line); }
+
+/* ----- Kolom pencarian & pilihan urutan ----- */
+.cari-bar { padding: 8px 12px 6px; }
+.urut-bar { padding: 0 12px 8px; border-bottom: 1px solid var(--line); }
+.urut-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.urut-label select { flex: 1; min-width: 0; }
+
+/* ----- Tabel Stok Rak ----- */
+/* Header menempel di bawah bar atas saat digulir */
+#tabelRak thead th {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 56px); z-index: 4;
+  background: var(--dark); color: #fff;
+  border-bottom: 0; font-size: 13px;
+}
+#tabelRak tbody td { height: 44px; }
+
+/* Kolom IDRak, Model, Qty selebar isinya.
+   Kolom Lotcode mengambil sisa lebar dan dipotong dengan "..." jika terlalu panjang. */
+#tabelRak th:nth-child(1), #tabelRak th:nth-child(2), #tabelRak th:nth-child(4),
+#tabelRak tr.data td:nth-child(1), #tabelRak tr.data td:nth-child(2), #tabelRak tr.data td:nth-child(4) {
+  width: 1%; white-space: nowrap;
+}
+#tabelRak th:nth-child(3), #tabelRak tr.data td:nth-child(3) {
+  width: 100%; max-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+tr.data { cursor: pointer; }
+tr.z0 td { background: var(--strip); }                 /* baris belang */
+tr.z1 td { background: var(--card); }
+tr.garis td { border-top: 3px solid var(--dark); }     /* garis pemisah kelompok */
+
+/* ----- Daftar lotcode di halaman Form Lotcode ----- */
+/* Lotcode panjang turun ke baris berikutnya supaya tidak melebar keluar layar */
+.geser { overflow-x: auto; margin-top: 10px; }
+#tabelLot th, #tabelLot td { padding: 8px 4px; }
+#tabelLot td:first-child { overflow-wrap: anywhere; }
+#tabelLot td:last-child { width: 1%; white-space: nowrap; text-align: right; }

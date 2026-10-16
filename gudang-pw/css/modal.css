@@ -1,0 +1,45 @@
+/* =====================================================
+   POPUP: Form Data Rak dan pratinjau Screenshot
+   ===================================================== */
+
+/* ----- Popup Form Data Rak, Sinkronisasi, dan Cadangan ----- */
+#kotakEdit, #kotakSinkron, #kotakCadangan {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
+  align-items: center; justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, .55);
+}
+.modal-box {
+  display: flex; flex-direction: column;
+  width: 100%; max-width: 440px; max-height: 100%;
+  background: var(--card); border-radius: 10px; overflow: hidden;
+}
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.modal-body { padding: 4px 14px 12px; overflow-y: auto; }
+.modal-foot { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); }
+.spacer { flex: 1; }
+
+/* Daftar lotcode di dalam popup */
+.daftar-pilih { max-height: 200px; margin-top: 6px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.item {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  width: 100%; padding: 10px 12px;
+  background: var(--card); color: var(--text);
+  border: 0; border-bottom: 1px solid var(--line);
+  text-align: left; cursor: pointer;
+}
+.item b { overflow-wrap: anywhere; }
+.item.aktif { background: var(--strip); outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Pesan "lotcode tidak ditemukan" */
+.tidak-ada { padding: 14px 12px; text-align: center; font-size: 14px; }
+.tidak-ada .btn { margin-top: 8px; }
+
+/* ----- Pratinjau Screenshot ----- */
+#kotakGambar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 40;
+  overflow: auto; padding: 16px;
+  background: rgba(0, 0, 0, .6);
+}

@@ -1,0 +1,44 @@
+/* =====================================================
+   KOMPONEN: input, tombol, pilihan tema, label kosong
+   ===================================================== */
+
+/* ----- Input & select ----- */
+input, select {
+  width: 100%; min-width: 0;
+  padding: 6px 8px;
+  color: var(--text); background: var(--card);
+  border: 1px solid var(--line); border-radius: 6px;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+#inputLot { text-transform: uppercase; }
+
+/* Label di atas input */
+.field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+/* Kotak centang */
+input[type=checkbox] { width: auto; }
+.cek { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; }
+
+/* ----- Tombol ----- */
+.btn {
+  padding: 6px 12px;
+  color: var(--text); background: var(--card);
+  border: 1px solid var(--line); border-radius: 6px;
+  white-space: nowrap; cursor: pointer;
+}
+.btn.utama { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.hijau { background: var(--green);  border-color: var(--green);  color: #fff; }
+.btn.merah { color: var(--red); border-color: var(--red); }
+
+/* ----- Pilihan tema ----- */
+.pilihan-tema { display: flex; flex-wrap: wrap; gap: 8px; }
+.pilihan-tema .btn { display: flex; align-items: center; gap: 6px; }
+.pilihan-tema .btn.aktif { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .25); }
+
+/* ----- Label "kosong" di tabel ----- */
+.kosong {
+  padding: 2px 8px; border-radius: 10px;
+  color: #0f5132; background: #d1e7dd;
+  font-size: 13px; font-weight: 700; white-space: nowrap;
+}
