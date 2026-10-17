@@ -92,7 +92,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 | Mengubah kolom tabel Stok Rak | `index.html` (judul kolom), `js/stock-table.js` (`tampilkanTabel`), `css/table.css` (lebar kolom) |
 | Mengubah format teks WhatsApp | `js/share.js` | `buatTeksWA()` |
 | Mengubah tampilan gambar Screenshot | `js/share.js` | `GAMBAR` dan fungsi `gambar...()` |
-| Mengubah isi menu di bar atas | `index.html` (tombol) dan `js/pages.js` |
+| Mengubah isi menu / tombol di bar atas | `index.html` (tombol) dan `js/pages.js`; titik status ikon awan ada di `js/sync.js` (`tampilkanStatusSinkron`) dan `css/layout.css` |
 | Mengubah warna, ukuran huruf, jarak | folder `css/` (pilih file sesuai bagian: lihat bagian 1) |
 | Mengubah isi popup Form Data Rak | `index.html` (kerangka) dan `js/rack-popup.js` |
 | Mengubah nama aplikasi | `js/config.js` (`NAMA_APP`), `index.html` (`<title>` dan judul), `manifest.webmanifest` |
@@ -178,7 +178,7 @@ disimpan di sana.
 3. Buka halaman **API Keys**, buat **Access Key** baru. Beri izin **Bins Read** dan **Bins Update**
    saja. Salin kuncinya.
    > Pakai Access Key, bukan Master Key. Master Key bisa menghapus semua bin di akun Anda.
-4. Di aplikasi: menu **Sinkronisasi**, isi **Bin ID** dan **Kunci API**, tekan **Tes koneksi**.
+4. Di aplikasi: ketuk **ikon awan** di bar atas (di sebelah tombol menu), isi **Bin ID** dan **Kunci API**, tekan **Tes koneksi**.
    Kalau tertulis "Terhubung", centang **Sinkron otomatis** lalu tekan **Simpan**.
 5. Di HP lain: ulangi langkah 4 dengan Bin ID dan kunci yang sama.
 

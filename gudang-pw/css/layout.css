@@ -20,7 +20,10 @@
 .top h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; color: #fff; }
 .top h1 img { width: 32px; height: 32px; border-radius: 8px; }
 
+.top-aksi { display: flex; gap: 8px; }
+
 .icon-btn {
+  position: relative;
   display: flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; padding: 0;
   border-radius: 6px; cursor: pointer;
@@ -28,6 +31,12 @@
   color: #fff;
   border: 1px solid rgba(255, 255, 255, .55);
 }
+
+/* Titik status sinkronisasi di pojok tombol: hijau = tersinkron, kuning = proses, merah = gagal */
+.titik { display: none; position: absolute; top: 3px; right: 3px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bar); }
+.titik.ok { display: block; background: #5dd879; }
+.titik.proses { display: block; background: #ffd43b; }
+.titik.err { display: block; background: #ff6b6b; }
 
 /* ----- Menu dropdown ----- */
 .menu {

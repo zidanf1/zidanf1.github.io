@@ -69,6 +69,20 @@ function aturStatusSinkron(pesan, galat) {
 function tampilkanStatusSinkron() {
   var warna = statusGalat ? 'var(--red)' : '';
 
+  // Titik status di tombol awan (bar atas)
+  var titik = 'titik';
+  if (sinkronTerhubung()) {
+    if (statusGalat) {
+      titik = 'titik err';
+    } else if (SYNC.sedangJalan || statusPesan.indexOf('Menunggu') === 0) {
+      titik = 'titik proses';
+    } else {
+      titik = 'titik ok';
+    }
+  }
+  el('titikSinkron').className = titik;
+  el('tombolSinkron').title = 'Sinkronisasi' + (statusPesan !== '' ? ': ' + statusPesan : '');
+
   el('sinkronStatus').textContent = statusPesan;
   el('sinkronStatus').style.color = warna;
 
@@ -188,6 +202,7 @@ async function jalankanSinkron(tugas) {
     return false;
   } finally {
     SYNC.sedangJalan = false;
+    tampilkanStatusSinkron();   // perbarui titik status setelah proses selesai
     if (SYNC.ulang) {
       SYNC.ulang = false;
       jadwalkanSinkron();

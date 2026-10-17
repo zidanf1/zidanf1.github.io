@@ -11,7 +11,7 @@ var KONFIG = {
 
   // NAIKKAN angka versi ini setiap selesai memperbarui aplikasi,
   // supaya HP/browser mengambil file yang baru (lihat README.md).
-  VERSI: '2.2.0',
+  VERSI: '2.2.1',
 
   // false = service worker (mode offline) dimatikan. Dipakai oleh build.py untuk file mandiri.
   PAKAI_SERVICE_WORKER: true,
