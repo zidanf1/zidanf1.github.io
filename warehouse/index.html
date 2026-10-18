@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Warehouse</title><meta name="app-version" content="25"><meta name="theme-color" content="#3d7ab5">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icons/icon-192.png">
+<style>
+:root{color-scheme:light dark;--card:#fff;--row:#d7dee7;--hov:#f3f7fb;--sub:#667;--bd:#c8d0da;--bl:#3d7ab5;--dk:#2c5f8a;--lt:#e9f0f8;--gr:#137a48;--bg:#f4f6f9;--tx:#1d2733;--ln:#dfe5ec}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 Roboto,"Segoe UI",system-ui,sans-serif}
+.top{background:var(--bl);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 16px;position:relative}
+.logo{width:34px;height:34px;border-radius:8px;overflow:hidden;display:grid;place-items:center}.logo img{display:block}
+.top h1{font-size:19px;margin:0;flex:1}
+#net:empty{display:none}#net{font-size:12px;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:10px}
+.ham{width:40px;height:40px;border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:22px;cursor:pointer}
+#menu{position:absolute;right:16px;top:56px;background:var(--card);color:var(--tx);border:1px solid var(--ln);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);min-width:210px;z-index:5;padding:6px}
+#menu[hidden]{display:none}
+#menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px;font:inherit;cursor:pointer;border-radius:6px}
+#menu button:hover{background:var(--lt)}#menu small{display:block;padding:6px 10px;color:var(--sub)}
+.wrap{max-width:760px;margin:0 auto}
+.bar{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 8px}
+.bar b{font-size:15px}.bar span{font-size:13px;color:var(--sub)}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:8px;margin:0 16px 24px;overflow:hidden}
+.ch{display:flex;align-items:center;gap:8px;padding:12px}
+.ch h2{margin:0;flex:1;font-size:15px}
+.btn{font:inherit;font-weight:600;padding:9px 14px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.btn.g{background:var(--gr);border-color:var(--gr);color:#fff}.btn.r{color:#b3261e;border-color:#e3b5b1}
+.flt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}
+select,input{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:7px;background:var(--card);width:100%;min-width:0}
+table{width:100%;border-collapse:collapse}
+th{background:var(--dk);color:#fff;text-align:left;padding:10px 8px;font-size:13px}
+td{padding:13px 8px;border-bottom:1px solid var(--ln);cursor:pointer}
+tbody tr:nth-child(even) td{background:var(--lt)}tbody tr:not(.ge) td{border-bottom:1px solid var(--row)}tbody tr.ge td{border-bottom:3px solid var(--bl)}
+th:first-child,td:first-child{padding-left:12px}th:last-child,td:last-child{padding-right:12px}th.n,td.n{text-align:right}
+td:first-child{font-weight:700}
+.kos{background:#d3eadc;color:#14663c;font-weight:600;font-size:13px;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.empty{padding:28px;text-align:center;color:var(--sub)}
+dialog{border:0;border-radius:10px;padding:18px;width:min(92vw,420px);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h3{margin:0 0 12px}label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.acts .sp{flex:1}
+:focus-visible{outline:2px solid #1a5fb4;outline-offset:2px}
+dialog{padding:0;border-radius:14px;width:min(92vw,440px)}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--ln)}
+.dh h3{margin:0;font-size:16px}
+.x{width:36px;height:36px;border:1px solid var(--bd);background:var(--card);border-radius:8px;font-size:16px;cursor:pointer}
+.db{padding:6px 16px 14px}
+#rakNew{margin-top:8px}
+#opts{margin-top:8px;border:1px solid var(--bd);border-radius:8px;max-height:200px;overflow:auto}
+.o{display:flex;justify-content:space-between;gap:10px;padding:12px;cursor:pointer;border-bottom:1px solid var(--ln)}
+.o:last-child{border-bottom:0}.o:hover{background:var(--hov)}.o span{color:var(--sub);font-size:13px}
+.o.sel{background:var(--lt);box-shadow:inset 0 0 0 2px var(--bl)}
+.lnk{border:0;background:none;color:var(--dk);font:inherit;font-weight:600;padding:10px 0 0;cursor:pointer}
+.df{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid var(--ln)}.df .sp{flex:1}
+.btn.b{background:var(--bl);border-color:var(--bl);color:#fff}
+#q,#rakNew,#fModel,#fStyle,#fSpk{text-transform:uppercase}#q::placeholder,#rakNew::placeholder{text-transform:none}
+td,.o{text-transform:uppercase}.kos,.o span.k{text-transform:none}
+.lnk.red{color:#b3261e;margin-left:16px}
+dialog{background:var(--card);color:var(--tx)}
+:root{padding-bottom:env(safe-area-inset-bottom,0px)}.top{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161d;--tx:#e6ebf2;--ln:#2a3542;--lt:var(--ltd,#1b2634);--card:#18202a;--hov:#202b38;--sub:#9aa7b6;--bd:#3a4757;--row:#2e3a49;}:root:not([data-theme="light"]) .kos{background:#1f4a36;color:#9fe0bd}:root:not([data-theme="light"]) .lnk.red{color:#f2b8b5}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#10161d;--tx:#e6ebf2;--ln:#2a3542;--lt:var(--ltd,#1b2634);--card:#18202a;--hov:#202b38;--sub:#9aa7b6;--bd:#3a4757;--row:#2e3a49;}:root[data-theme="dark"] .kos{background:#1f4a36;color:#9fe0bd}:root[data-theme="dark"] .lnk.red{color:#f2b8b5}
+:root[data-theme="light"]{color-scheme:light}
+/* menu pengaturan */
+#menu{min-width:270px;max-height:80vh;overflow:auto}
+.mh{font-size:12px;font-weight:700;color:var(--sub);padding:10px 10px 4px;text-transform:uppercase;letter-spacing:.04em}
+.mh2{font-size:12px;color:var(--sub);padding:6px 10px 3px}
+#menu .seg{display:flex;padding:0 10px 4px}
+#menu .seg button{display:block;flex:1;width:auto;text-align:center;padding:8px 6px;border:1px solid var(--bd);border-radius:0;font-size:13px;background:var(--card);color:var(--tx)}
+#menu .seg button:first-child{border-radius:7px 0 0 7px}#menu .seg button:last-child{border-radius:0 7px 7px 0}
+#menu .seg button+button{margin-left:-1px}
+#menu .seg button.on{background:var(--bl);border-color:var(--bl);color:#fff;font-weight:600}
+#menu .sync{margin:2px 10px 4px;width:calc(100% - 20px);border:1px solid var(--bd);text-align:center;font-weight:600}
+#menu hr{border:0;border-top:1px solid var(--ln);margin:8px 0 0}
+html[data-size="s"] body{zoom:.9}html[data-size="l"] body{zoom:1.15}
+html[data-dens="c"] td{padding-top:6px;padding-bottom:6px}html[data-dens="c"] th{padding-top:7px;padding-bottom:7px}
+html[data-dens="c"] tbody tr.ge td{border-bottom-width:2px}
+html[data-color="navy"]{--bl:#1e3a6e;--dk:#14284f;--lt:#e6ebf5;--ltd:#182235}
+html[data-color="marun"]{--bl:#8b2635;--dk:#651b27;--lt:#f6e9eb;--ltd:#2a1a1e}
+html[data-color="hijau"]{--bl:#2e7d5b;--dk:#1f5c41;--lt:#e6f3ed;--ltd:#172a22}
+html[data-color="ungu"]{--bl:#6a4c9c;--dk:#4d3577;--lt:#efe9f6;--ltd:#211a2e}
+html[data-color="oranye"]{--bl:#c2570c;--dk:#96430a;--lt:#fbeee3;--ltd:#2b1f15}
+html[data-color="teal"]{--bl:#0f766e;--dk:#0b5750;--lt:#e3f3f1;--ltd:#14272a}
+html[data-color="abu"]{--bl:#475569;--dk:#334155;--lt:#eceff3;--ltd:#1e242c}
+#menu .sw{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:2px 12px 8px}
+#menu .sw button{display:block;width:100%;max-width:46px;aspect-ratio:1;height:auto;padding:0;margin:0 auto;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--bd)}
+#menu .sw [data-v="biru"]{background:#3d7ab5}
+#menu .sw [data-v="navy"]{background:#1e3a6e}
+#menu .sw [data-v="marun"]{background:#8b2635}
+#menu .sw [data-v="hijau"]{background:#2e7d5b}
+#menu .sw [data-v="ungu"]{background:#6a4c9c}
+#menu .sw [data-v="oranye"]{background:#c2570c}
+#menu .sw [data-v="teal"]{background:#0f766e}
+#menu .sw [data-v="abu"]{background:#475569}
+#menu .sw button.on{box-shadow:0 0 0 3px var(--tx)}
+#menu .sw button:hover{background-blend-mode:normal;filter:brightness(1.08)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .lnk{color:color-mix(in srgb,var(--bl) 45%,#fff)}}
+:root[data-theme="dark"] .lnk{color:color-mix(in srgb,var(--bl) 45%,#fff)}
+#sy{display:grid;place-items:center;position:relative;padding:0}
+#sy.spin svg{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#sy.spin svg{animation:none}#sy.spin{opacity:.6}}
+#sy.pend::after{content:"";position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;background:#ffb020;border:2px solid var(--bl)}
+.bu{text-align:right}.bu small{display:block;font-size:12px;color:var(--sub)}.bu small:empty{display:none}.bu small.err{color:#b3261e}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .bu small.err{color:#f2b8b5}}
+:root[data-theme="dark"] .bu small.err{color:#f2b8b5}
+#menu .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 6px}
+#menu .chips button{display:inline-block;width:auto;border:1px solid var(--bd);border-radius:16px;padding:6px 12px;font-size:13px;background:var(--card);color:var(--tx)}
+#menu .chips button.on{background:var(--bl);border-color:var(--bl);color:#fff;font-weight:600}
+#menu .chips button.fix{background:var(--lt);font-weight:600;cursor:default;opacity:1}
+.srch{position:relative;padding:0 12px 6px}
+.srch svg{position:absolute;left:25px;top:11px;color:var(--sub);pointer-events:none}
+.srch input{padding:10px 38px 10px 38px;border-radius:9px}
+.srch button{position:absolute;right:17px;top:6px;width:32px;height:32px;border:0;background:none;color:var(--sub);font-size:16px;cursor:pointer;border-radius:50%}
+.cnt{padding:0 14px 10px;font-size:12px;color:var(--sub)}
+#sq{text-transform:uppercase}#sq::placeholder{text-transform:none}
+.msg{color:#b3261e;font-size:13px;padding:6px 2px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .msg{color:#f2b8b5}}:root[data-theme="dark"] .msg{color:#f2b8b5}
+/* lebar kolom menyesuaikan teks; sisa ruang diisi kolom kosong (.fill); lotcode panjang dipotong dengan ... */
+:root{--colmax:min(14ch,16vw)}
+.tw{overflow-x:auto}
+th:not(.fill),td:not(.fill){width:1%;white-space:nowrap}
+th,td{padding-left:14px;padding-right:14px}th:first-child,td:first-child{padding-left:12px}
+.lt{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx{display:inline-block;max-width:var(--colmax);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+/* prioritas lebar: Lotcode paling lega; kolom lain (Model/Style/SPK) dipotong lebih dulu */
+@media(max-width:420px){:root{--colmax:min(9ch,16vw)}th,td{padding-left:9px;padding-right:9px}th:first-child,td:first-child{padding-left:10px}}
+#menu .cl{padding:0 10px 4px}
+#menu .cr{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+#menu .cr .fix{flex:1;padding:8px 12px;border-radius:8px;background:var(--lt);font-size:13px;font-weight:600}
+#menu .cr button.cn{display:block;flex:1;width:auto;text-align:left;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;background:var(--card);color:var(--tx);font-size:13px}
+#menu .cr button.cn.on{background:var(--bl);border-color:var(--bl);color:#fff;font-weight:600}
+#menu .cr button.mv{display:block;flex:none;width:38px;padding:8px 0;text-align:center;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font-size:12px}
+#menu .cr button.mv:disabled{opacity:.35;cursor:default}
+/* kolom Lotcode = kolom terpanjang: menyerap seluruh sisa lebar baris; dipotong dengan ... hanya bila ruang habis */
+th.lc,td.lc{width:100%;min-width:9ch}
+td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* bagikan via WhatsApp */
+#menu .shbtn{display:flex;align-items:center;gap:10px;width:calc(100% - 12px);margin:2px 6px 6px;border:1px solid #bfe3cd;background:#e8f6ee;color:#12633a;font-weight:600;border-radius:8px}
+#menu .shbtn .wa{width:26px;height:26px;border-radius:50%;background:#25a05a;display:grid;place-items:center;flex:none}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #menu .shbtn{background:#17382a;border-color:#245a40;color:#9fe0bd}}
+:root[data-theme="dark"] #menu .shbtn{background:#17382a;border-color:#245a40;color:#9fe0bd}
+.rd{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx);margin:4px 0}.rd input{width:auto}
+#shText{width:100%;height:230px;resize:vertical;border:1px solid var(--bd);border-radius:8px;padding:10px;background:var(--card);color:var(--tx);font:12.5px/1.5 "DejaVu Sans Mono",Consolas,monospace;white-space:pre}
+.pp{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.pp[hidden]{display:none}.pp button{padding:6px 12px;border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);font:inherit;font-size:13px;cursor:pointer}
+.shdb{max-height:68vh;overflow:auto}#shForm .row2{display:flex;gap:8px}#shForm .row2>div{flex:1;min-width:0}.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:0 6px}.fg .rd{margin:3px 0}
+.lnk{background:none;border:0;color:var(--bl);font:inherit;font-size:13px;padding:8px 0 2px;cursor:pointer;text-decoration:underline}
+.pp button.on{background:var(--bl);border-color:var(--bl);color:#fff;font-weight:600}
+</style></head><body>
+<header class="top">
+  <div class="logo"><img src="icons/logo-64.png" width="34" height="34" alt=""></div>
+  <h1>Warehouse</h1><span id="net"></span>
+  <button class="ham" id="sy" aria-label="Sinkron sekarang" title="Sinkron sekarang"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg></button>
+  <button class="ham" id="hb" aria-label="Menu">☰</button>
+  <div id="menu" hidden>
+    <div class="mh">Bagikan</div>
+    <button type="button" id="mShare" class="shbtn"><span class="wa"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3zm4.6 12.5c-.2.6-1.2 1.1-1.7 1.1-.4 0-1 .2-3.2-.7-2.7-1.1-4.4-3.8-4.6-4-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.2.4-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.2.1.8-.1 1.4z"/></svg></span>Bagikan via WhatsApp</button>
+    <div class="mh">Tema</div>
+    <div class="seg" data-key="theme"><button data-v="auto">Otomatis</button><button data-v="light">Terang</button><button data-v="dark">Gelap</button></div>
+    <div class="mh2">Warna dasar: <b id="colName"></b></div>
+    <div class="sw" data-key="color"><button data-v="biru" title="Biru" aria-label="Biru"></button><button data-v="navy" title="Navy" aria-label="Navy"></button><button data-v="marun" title="Marun" aria-label="Marun"></button><button data-v="hijau" title="Hijau" aria-label="Hijau"></button><button data-v="ungu" title="Ungu" aria-label="Ungu"></button><button data-v="oranye" title="Oranye" aria-label="Oranye"></button><button data-v="teal" title="Teal" aria-label="Teal"></button><button data-v="abu" title="Abu-abu" aria-label="Abu-abu"></button></div>
+    <div class="mh">Tampilan</div>
+    <div class="mh2">Kolom tabel · Lotcode selalu tampil · pilih maks. 2 lagi · geser urutan dengan ▲ ▼</div>
+    <div class="cl" id="cols"></div>
+    <div class="mh2">Ukuran teks</div>
+    <div class="seg" data-key="size"><button data-v="s">Kecil</button><button data-v="m">Normal</button><button data-v="l">Besar</button></div>
+    <div class="mh2">Kepadatan baris</div>
+    <div class="seg" data-key="dens"><button data-v="c">Rapat</button><button data-v="n">Nyaman</button></div>
+    <hr><small>Versi 25</small>
+  </div>
+</header>
+<main class="wrap">
+  <div class="bar"><b>Maps</b><div class="bu"><span id="upd"></span><small id="st"></small></div></div>
+  <section class="card">
+    <div class="ch"><h2>Maps</h2><button class="btn" id="sortB">Urutkan Rak</button><button class="btn g" id="add">+ Baris</button></div>
+    <div class="srch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="sq" type="text" inputmode="search" placeholder="Cari rak, lotcode, model, style, SPK…" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-label="Cari"><button type="button" id="sx" hidden aria-label="Hapus pencarian">✕</button></div>
+    <div class="cnt" id="cnt"></div>
+    <div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+    <div class="empty" id="emp" hidden>Belum ada data. Tekan + Baris untuk menambah.</div>
+  </section>
+</main>
+<dialog id="dg"><form id="fm2" method="dialog">
+  <div class="dh"><h3 id="dt">Tambah Baris</h3><button type="button" class="x" id="cx" aria-label="Tutup">✕</button></div>
+  <div class="db">
+    <label for="rak">IDRak</label><select id="rak"></select><input id="rakNew" spellcheck="false" autocorrect="off" autocapitalize="characters" placeholder="ID rak baru, mis. A7-1" hidden autocomplete="off">
+    <label for="q">Lotcode</label><input id="q" spellcheck="false" autocorrect="off" autocapitalize="characters" placeholder="Cari lotcode..." autocomplete="off">
+    <div id="opts" role="listbox"></div>
+    <div id="lotMsg" class="msg" hidden></div>
+    <button type="button" class="lnk" id="editLot" hidden>Ubah data lot</button><button type="button" class="lnk red" id="delLot" hidden>Hapus lotcode</button>
+    <div id="lotf" hidden><div class="row2"><div><label>Model</label><input id="fModel" spellcheck="false" autocorrect="off" autocapitalize="characters"></div><div><label>Style</label><input id="fStyle" spellcheck="false" autocorrect="off" autocapitalize="characters"></div></div>
+    <div class="row2"><div><label>SPK</label><input id="fSpk" spellcheck="false" autocorrect="off" autocapitalize="characters"></div><div><label>Qty</label><input id="fQty" type="number" min="0"></div></div></div>
+  </div>
+  <div class="df"><button type="button" class="btn r" id="del">Hapus</button><span class="sp"></span><button type="button" class="btn" id="cx2">Batal</button><button class="btn b">Simpan</button></div>
+</form></dialog>
+<dialog id="sh"><form method="dialog" id="shf">
+  <div class="dh"><h3>Bagikan via WhatsApp</h3><button type="button" class="x" id="shx" aria-label="Tutup">✕</button></div>
+  <div class="db shdb">
+    <div id="shForm">
+    <div class="mh2" style="padding-left:0">Data yang dikirim</div>
+    <label class="rd"><input type="radio" name="shs" value="vis" checked><span id="shVis"></span></label>
+    <label class="rd"><input type="radio" name="shs" value="all"><span id="shAll"></span></label>
+    <label for="shTitle">Judul pesan (opsional)</label><input id="shTitle" spellcheck="false" placeholder="mis. Laporan stok gudang pagi" autocomplete="off">
+    <label>Preset format</label>
+    <div class="pp" id="shPre"><button type="button" data-v="ringkas">Ringkas</button><button type="button" data-v="lengkap">Lengkap</button><button type="button" data-v="tabel">Tabel</button></div>
+    <div class="row2"><div><label for="shGrp">Dikelompokkan per</label><select id="shGrp"><option value="model">Model</option><option value="none">Tanpa kelompok</option></select></div>
+    <div><label for="shSort">Urut</label><select id="shSort"><option value="lot">Lotcode</option><option value="rak">IDRak</option></select></div></div>
+    <label>Isi tiap baris</label>
+    <div class="fg" id="shFlds"><label class="rd"><input type="checkbox" data-f="idrak">IDRak</label><label class="rd"><input type="checkbox" data-f="lot">Lotcode</label><label class="rd"><input type="checkbox" data-f="qty">Qty</label><label class="rd"><input type="checkbox" data-f="spk">SPK</label><label class="rd"><input type="checkbox" data-f="model">Model</label><label class="rd"><input type="checkbox" data-f="style">Style</label></div>
+    <label class="rd"><input type="checkbox" id="shSum">Sertakan ringkasan &amp; tanggal</label>
+    <label class="rd"><input type="checkbox" id="shEmp">Sertakan RAK KOSONG</label>
+    <label>Pemisah</label>
+    <div class="pp" id="shSep"><button type="button" data-v="&gt;"> &gt; </button><button type="button" data-v="|"> | </button><button type="button" data-v="-"> - </button><button type="button" data-v=" ">Spasi</button></div>
+    <label>Bentuk judul grup</label>
+    <div class="pp" id="shHd"><button type="button" data-v="bold">*TEBAL*</button><button type="button" data-v="line">— garis —</button><button type="button" data-v="none">Tanpa</button></div>
+    <div class="row2"><div><label for="shMax">Batas karakter / pesan</label><input id="shMax" type="number" min="300" step="100"></div>
+    <div><label for="shMemo">Catatan tambahan</label><input id="shMemo" spellcheck="false" autocomplete="off" placeholder="opsional"></div></div>
+    <button type="button" class="lnk" id="shReset">Kembalikan ke bawaan (Ringkas)</button>
+    </div>
+    <div class="mh2" style="padding-left:0">Pratinjau pesan (boleh diedit; mengubah form menyusun ulang pesan)</div>
+    <div class="pp" id="shParts" hidden></div>
+    <textarea id="shText" spellcheck="false" aria-label="Isi pesan"></textarea>
+    <div class="cnt" id="shNote" style="padding:6px 2px 0"></div>
+  </div>
+  <div class="df"><button type="button" class="btn" id="shCopy">Salin</button><span class="sp"></span><button type="button" class="btn g" id="shSend">Kirim ke WhatsApp</button></div>
+</form></dialog>
+<script src="app.js"></script>
+<script>(function(){function whFix(msg){var ok=false;try{ok=sessionStorage.getItem('wh_fix')}catch(e){}
+ if(!ok){try{sessionStorage.setItem('wh_fix','1')}catch(e){}
+  Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0]).then(function(){location.reload()},function(){location.reload()});return}
+ var d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:14px sans-serif';d.textContent=msg;document.body.appendChild(d)}if(window.WH_VER!=='25')whFix('app.js tidak sama versinya dengan index.html. Ganti keduanya dengan isi warehouse-final.zip terbaru, lalu tekan Ctrl+Shift+R.')})();</script>
+</body></html>
