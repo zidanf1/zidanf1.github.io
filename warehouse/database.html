@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Database Gudang</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#1b1f24;--mut:#667085;--line:#e2e5ea;--pri:#1a5fd0;--pri-i:#fff;--red:#b3261e;--red-bg:#fdecea;--amb:#8a5a00;--amb-bg:#fff4d6;--grn:#1b7a3d;--hov:#eef3fb;--sel:#e3edfc}
+@media (prefers-color-scheme:dark){:root{--bg:#14171b;--card:#1c2026;--ink:#e8eaed;--mut:#9aa3af;--line:#2d333b;--pri:#5b9bff;--pri-i:#08111f;--red:#ff8a80;--red-bg:#3a1d1b;--amb:#f2c35b;--amb-bg:#3a2f12;--grn:#6fd08c;--hov:#222a35;--sel:#1f3250}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;margin-right:auto}
+#stat{color:var(--mut);font-size:13px}
+main{max-width:1200px;margin:0 auto;padding:12px 16px 80px}
+.tabs{display:flex;gap:6px;margin:4px 0 10px}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+.tab[aria-selected=true]{background:var(--pri);color:var(--pri-i);border-color:var(--pri)}
+.tab small{opacity:.8;margin-left:4px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.bar .sp{flex:1}
+input,select,button{font:inherit;color:var(--ink)}
+input[type=text],input[type=number],input[type=search],select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.btn:hover{background:var(--hov)}
+.btn.p{background:var(--pri);color:var(--pri-i);border-color:var(--pri)}
+.btn.r{color:var(--red);border-color:var(--red)}
+.btn.r.f{background:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+#bulk{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--sel);border-radius:8px;margin-bottom:10px}
+#bulk.on{display:flex}
+.note{background:var(--amb-bg);color:var(--amb);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 290px);min-height:160px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--card);cursor:pointer;user-select:none;font-weight:600;z-index:1}
+th.nosort{cursor:default}
+tr:hover td{background:var(--hov)}
+tr.sel td{background:var(--sel)}
+tr.del td{color:var(--mut);text-decoration:line-through}
+tr.del td.act,tr.del td.st,tr.del td.ck{text-decoration:none}
+td.num{text-align:right}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;text-decoration:none}
+.tag.d{background:var(--red-bg);color:var(--red)}
+.tag.w{background:var(--amb-bg);color:var(--amb)}
+.tag.o{color:var(--grn)}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+.foot{color:var(--mut);margin-top:8px;font-size:13px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);padding:0;width:min(460px,calc(100vw - 24px))}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog form{padding:16px}
+dialog h3{margin:0 0 12px}
+dialog label{display:block;margin:10px 0 4px;color:var(--mut);font-size:13px}
+dialog input[type=text],dialog input[type=number],dialog select{width:100%}
+dialog .chk{display:flex;align-items:center;gap:8px;margin-top:12px;color:var(--ink)}
+dialog .df{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#err{color:var(--red);margin-top:10px;white-space:pre-wrap;display:none}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
+#toast.on{opacity:1}
+@media (max-width:640px){.tw{max-height:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Database Gudang</h1>
+  <span id="stat">Memuat…</span>
+  <button class="btn" id="reload" type="button">Muat ulang</button>
+</header>
+<main>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tm" data-t="maps" aria-selected="true">Rak <small id="cm"></small></button>
+    <button class="tab" role="tab" id="ti" data-t="items" aria-selected="false">Lot <small id="ci"></small></button>
+  </div>
+  <div class="bar">
+    <input type="search" id="q" placeholder="Cari…" autocomplete="off" spellcheck="false" aria-label="Cari">
+    <select id="f" aria-label="Filter">
+      <option value="all">Semua</option>
+      <option value="act">Aktif</option>
+      <option value="del">Ditandai hapus</option>
+      <option value="bad">Bermasalah</option>
+    </select>
+    <span class="sp"></span>
+    <button class="btn" id="csv" type="button">Ekspor CSV</button>
+    <button class="btn r" id="purge" type="button">Bersihkan yang ditandai hapus</button>
+    <button class="btn p" id="add" type="button">+ Tambah</button>
+  </div>
+  <div id="bulk">
+    <b id="bn"></b>
+    <button class="btn" id="bsoft" type="button">Tandai hapus</button>
+    <button class="btn" id="brest" type="button">Pulihkan</button>
+    <button class="btn r f" id="bhard" type="button">Hapus permanen</button>
+    <button class="btn" id="bclr" type="button">Batal pilih</button>
+  </div>
+  <div class="note"><b>Urutan aman:</b> tandai hapus dulu, biarkan semua HP sinkron, baru hapus permanen. Baris yang langsung dihapus permanen tetap ada di HP yang belum sinkron dan bisa terkirim balik ke database bila diubah di sana.</div>
+  <div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table><div class="empty" id="emp" hidden></div></div>
+  <div class="foot" id="foot"></div>
+</main>
+
+<dialog id="dg"><form id="fm" method="dialog">
+  <h3 id="dt"></h3>
+  <div id="fields"></div>
+  <label class="chk"><input type="checkbox" id="fdel"> Tandai sebagai terhapus</label>
+  <label class="chk" id="casw" hidden><input type="checkbox" id="fcas" checked> Ikut ubah lotcode di rak yang memakainya</label>
+  <div id="err"></div>
+  <div class="df"><button type="button" class="btn" id="cx">Batal</button><button class="btn p" id="sv" type="submit">Simpan</button></div>
+</form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// Pengaturan koneksi: samakan dengan CFG di app.js
+const CFG={SUPABASE_URL:'https://csgmhwkvrfhabltzdghr.supabase.co',SUPABASE_KEY:'sb_publishable_12S0lYl1jgu_p554JwEsHg_zFnx5G7X'};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nat=(a,b)=>String(a??'').localeCompare(String(b??''),undefined,{numeric:true});
+const U=CFG.SUPABASE_URL.replace(/\/$/,'');
+const H={apikey:CFG.SUPABASE_KEY,'Content-Type':'application/json'};
+
+// ---------- API ----------
+async function api(method,path,body,prefer){
+  const h={...H};if(prefer)h.Prefer=prefer;
+  const r=await fetch(U+'/rest/v1/'+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+  const t=await r.text();
+  if(!r.ok){let m=t;try{const j=JSON.parse(t);m=j.message||j.hint||t;if(j.code==='23505')m='Data kembar: lotcode itu sudah ada.'}catch{}throw new Error(m||('HTTP '+r.status))}
+  return t?JSON.parse(t):[];
+}
+async function fetchAll(t){
+  let out=[],o=0;
+  for(;;){const d=await api('GET',`${t}?select=*&order=id.asc&limit=1000&offset=${o}`);out=out.concat(d);if(d.length<1000)return out;o+=1000}
+}
+const inList=a=>'in.('+a.map(v=>'"'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"').map(encodeURIComponent).join(',')+')';
+const chunks=(a,n=100)=>{const o=[];for(let i=0;i<a.length;i+=n)o.push(a.slice(i,i+n));return o};
+
+// ---------- State ----------
+const D={maps:[],items:[]};
+let tab='maps',sel=new Set(),sk='',sd=1,editing=null;
+const COLS={
+  maps:[['idrak','IDRak'],['lotcode','Lotcode'],['updated_at','Diubah']],
+  items:[['lotcode','Lotcode'],['model','Model'],['style','Style'],['spk','SPK'],['qty','Qty'],['updated_at','Diubah']]
+};
+const fdt=s=>{if(!s)return'';const d=new Date(s);return isNaN(d)?s:d.toLocaleString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+const toast=(m,ms=2800)=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),ms)};
+const stat=t=>$('#stat').textContent=t;
+
+// Masalah: rak dengan lotcode yang tidak ada di lot aktif; lot aktif yang tidak dipakai rak aktif
+function problems(){
+  const lots=new Set(D.items.filter(x=>!x.deleted).map(x=>x.lotcode));
+  const used=new Set(D.maps.filter(x=>!x.deleted&&x.lotcode).map(x=>x.lotcode));
+  const bad=new Map();
+  for(const m of D.maps)if(!m.deleted&&m.lotcode&&!lots.has(m.lotcode))bad.set(m.id,'Lot tidak ada');
+  for(const i of D.items)if(!i.deleted&&!used.has(i.lotcode))bad.set(i.id,'Tidak dipakai rak');
+  return bad;
+}
+
+// ---------- Render ----------
+function view(){
+  const bad=problems(),q=$('#q').value.trim().toUpperCase(),tk=q?q.split(/\s+/):[],f=$('#f').value;
+  let r=D[tab].filter(x=>{
+    if(f==='act'&&x.deleted)return false;
+    if(f==='del'&&!x.deleted)return false;
+    if(f==='bad'&&!bad.has(x.id))return false;
+    if(!tk.length)return true;
+    const hay=COLS[tab].map(c=>String(x[c[0]]??'').toUpperCase()).concat(tab==='maps'&&!x.lotcode?['KOSONG']:[]);
+    return tk.every(t=>hay.some(v=>v.includes(t)));
+  });
+  const key=sk||COLS[tab][0][0];
+  r.sort((a,b)=>sd*(key==='qty'?(a.qty-b.qty):nat(a[key],b[key])));
+  return {r,bad};
+}
+function render(){
+  const {r,bad}=view(),cols=COLS[tab];
+  $('#cm').textContent=D.maps.length;$('#ci').textContent=D.items.length;
+  $('#tm').setAttribute('aria-selected',tab==='maps');$('#ti').setAttribute('aria-selected',tab==='items');
+  const allSel=r.length&&r.every(x=>sel.has(x.id));
+  $('#th').innerHTML='<tr><th class="nosort"><input type="checkbox" id="all" aria-label="Pilih semua"'+(allSel?' checked':'')+'></th>'+
+    cols.map(c=>`<th data-k="${c[0]}">${c[1]}${(sk||cols[0][0])===c[0]?(sd>0?' ↑':' ↓'):''}</th>`).join('')+'<th class="nosort">Status</th><th class="nosort"></th></tr>';
+  $('#tb').innerHTML=r.map(x=>{
+    const st=x.deleted?'<span class="tag d">Terhapus</span>':bad.has(x.id)?`<span class="tag w">${bad.get(x.id)}</span>`:'<span class="tag o">Aktif</span>';
+    const td=cols.map(c=>{const v=x[c[0]];return `<td${c[0]==='qty'?' class="num"':''}>${c[0]==='updated_at'?esc(fdt(v)):(c[0]==='lotcode'&&tab==='maps'&&!v?'<i>kosong</i>':esc(v))}</td>`}).join('');
+    return `<tr data-id="${esc(x.id)}" class="${x.deleted?'del ':''}${sel.has(x.id)?'sel':''}"><td class="ck"><input type="checkbox" class="rc" ${sel.has(x.id)?'checked':''} aria-label="Pilih"></td>${td}<td class="st">${st}</td><td class="act"><button class="btn eb" type="button">Ubah</button></td></tr>`}).join('');
+  $('#emp').hidden=r.length>0;$('#emp').textContent=D[tab].length?'Tidak ada data yang cocok.':'Tabel kosong.';
+  const nd=D[tab].filter(x=>x.deleted).length;
+  $('#purge').textContent='Bersihkan yang ditandai hapus ('+nd+')';$('#purge').disabled=!nd;
+  $('#foot').textContent=`${r.length} dari ${D[tab].length} baris · ${nd} ditandai hapus · ${[...bad.keys()].filter(id=>D[tab].some(x=>x.id===id)).length} bermasalah`;
+  sel=new Set([...sel].filter(id=>D[tab].some(x=>x.id===id)));
+  $('#bulk').classList.toggle('on',sel.size>0);$('#bn').textContent=sel.size+' dipilih';
+}
+
+// ---------- Memuat ----------
+async function load(){
+  stat('Memuat…');$('#reload').disabled=true;
+  try{
+    const [m,i]=await Promise.all([fetchAll('maps'),fetchAll('items')]);
+    D.maps=m;D.items=i;sel.clear();render();
+    stat('Terhubung · dimuat '+new Date().toLocaleTimeString('id-ID'));
+  }catch(e){stat('Gagal memuat: '+e.message)}
+  $('#reload').disabled=false;
+}
+function merge(t,rows){for(const r of rows){const k=D[t].findIndex(x=>x.id===r.id);k<0?D[t].push(r):D[t][k]=r}}
+
+// ---------- Operasi ----------
+const ids=()=>[...sel];
+async function setDeleted(t,idl,flag){
+  for(const c of chunks(idl)){merge(t,await api('PATCH',`${t}?id=${inList(c)}`,{deleted:flag},'return=representation'))}
+}
+// kosongkan rak yang memakai lot tertentu (dipakai saat lot dihapus)
+async function clearMapsFor(lots){
+  for(const c of chunks(lots,50)){
+    const rows=await api('PATCH',`maps?lotcode=${inList(c)}`,{lotcode:null},'return=representation');merge('maps',rows);
+  }
+}
+function lotsOf(idl){return D.items.filter(x=>idl.includes(x.id)).map(x=>x.lotcode)}
+function mapsUsing(lots){const s=new Set(lots);return D.maps.filter(m=>m.lotcode&&s.has(m.lotcode)&&!m.deleted).length}
+
+async function softDelete(idl){
+  if(!idl.length)return;
+  let msg=`Tandai ${idl.length} baris sebagai terhapus?`;
+  if(tab==='items'){const n=mapsUsing(lotsOf(idl));if(n)msg+=`\n${n} rak yang memakai lot ini akan dikosongkan.`}
+  if(!confirm(msg))return;
+  try{
+    if(tab==='items')await clearMapsFor(lotsOf(idl));
+    await setDeleted(tab,idl,true);sel.clear();render();toast(idl.length+' baris ditandai terhapus');
+  }catch(e){alert('Gagal: '+e.message)}
+}
+async function restore(idl){
+  if(!idl.length)return;
+  try{await setDeleted(tab,idl,false);sel.clear();render();toast(idl.length+' baris dipulihkan')}catch(e){alert('Gagal: '+e.message)}
+}
+async function hardDelete(idl,label){
+  if(!idl.length)return;
+  let msg=`HAPUS PERMANEN ${label||idl.length+' baris'} dari database?\nTidak bisa dibatalkan.`;
+  if(tab==='items'){const n=mapsUsing(lotsOf(idl));if(n)msg+=`\n${n} rak yang memakai lot ini akan dikosongkan.`}
+  if(!confirm(msg))return;
+  if(idl.length>10&&(prompt('Ketik HAPUS untuk melanjutkan:')||'').trim()!=='HAPUS')return toast('Dibatalkan');
+  try{
+    if(tab==='items')await clearMapsFor(lotsOf(idl));
+    for(const c of chunks(idl))await api('DELETE',`${tab}?id=${inList(c)}`);
+    D[tab]=D[tab].filter(x=>!idl.includes(x.id));sel.clear();render();toast(idl.length+' baris dihapus permanen');
+  }catch(e){alert('Gagal: '+e.message)}
+}
+
+// ---------- Dialog tambah / ubah ----------
+const FIELDS={
+  maps:[['idrak','IDRak','text',1],['lotcode','Lotcode (kosongkan = rak kosong)','text',0]],
+  items:[['lotcode','Lotcode','text',1],['model','Model','text',0],['style','Style','text',0],['spk','SPK','text',0],['qty','Qty','number',0]]
+};
+function openForm(row){
+  editing=row||null;$('#err').style.display='none';
+  $('#dt').textContent=(row?'Ubah ':'Tambah ')+(tab==='maps'?'rak':'lot');
+  $('#fields').innerHTML=FIELDS[tab].map(([k,l,ty,req])=>`<label for="f_${k}">${l}</label><input id="f_${k}" type="${ty}" ${ty==='number'?'min="0"':'autocapitalize="characters" spellcheck="false"'} ${req?'required':''} autocomplete="off" ${k==='lotcode'&&tab==='maps'?'list="lots"':''} value="${esc(row?.[k]??(k==='qty'?0:''))}">`).join('')+
+    (tab==='maps'?`<datalist id="lots">${D.items.filter(x=>!x.deleted).map(x=>`<option value="${esc(x.lotcode)}">`).join('')}</datalist>`:'');
+  $('#fdel').checked=!!row?.deleted;$('#casw').hidden=!(tab==='items'&&row);$('#fcas').checked=true;
+  $('#dg').showModal();$('#fields input').focus();
+}
+$('#fm').onsubmit=async e=>{
+  e.preventDefault();
+  const o={};
+  for(const [k,,ty] of FIELDS[tab]){const el=$('#f_'+k);o[k]=ty==='number'?(parseInt(el.value,10)||0):el.value.trim().toUpperCase()}
+  o.deleted=$('#fdel').checked;
+  if(tab==='maps'&&!o.lotcode)o.lotcode=null;
+  if(tab==='items'&&!o.lotcode)return showErr('Lotcode wajib diisi.');
+  if(tab==='maps'&&!o.idrak)return showErr('IDRak wajib diisi.');
+  $('#sv').disabled=true;
+  try{
+    if(editing){
+      const old=editing.lotcode,rows=await api('PATCH',`${tab}?id=eq.${editing.id}`,o,'return=representation');merge(tab,rows);
+      if(tab==='items'&&old!==o.lotcode&&$('#fcas').checked&&D.maps.some(m=>m.lotcode===old)){
+        merge('maps',await api('PATCH',`maps?lotcode=${inList([old])}`,{lotcode:o.lotcode},'return=representation'));
+      }
+    }else merge(tab,await api('POST',tab,[o],'return=representation'));
+    $('#dg').close();render();toast('Tersimpan');
+  }catch(er){showErr(er.message)}
+  $('#sv').disabled=false;
+};
+const showErr=m=>{const e=$('#err');e.textContent=m;e.style.display='block'};
+
+// ---------- Ekspor CSV ----------
+function exportCsv(){
+  const {r}=view(),c=[...COLS[tab].map(x=>x[0]).filter(k=>k!=='updated_at'),'deleted','updated_at'];
+  const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const csv='﻿'+[c.join(',')].concat(r.map(x=>c.map(k=>q(x[k])).join(','))).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`${tab==='maps'?'rak':'lot'}-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+// ---------- Event ----------
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sel.clear();sk='';sd=1;$('#q').value='';render()});
+$('#q').oninput=render;$('#f').onchange=render;$('#reload').onclick=load;$('#csv').onclick=exportCsv;
+$('#add').onclick=()=>openForm();$('#cx').onclick=()=>$('#dg').close();
+$('#th').onclick=e=>{
+  if(e.target.id==='all'){const {r}=view();e.target.checked?r.forEach(x=>sel.add(x.id)):r.forEach(x=>sel.delete(x.id));return render()}
+  const th=e.target.closest('th[data-k]');if(!th)return;const k=th.dataset.k;
+  if((sk||COLS[tab][0][0])===k)sd=-sd;else{sk=k;sd=1}render();
+};
+$('#tb').onclick=e=>{
+  const tr=e.target.closest('tr');if(!tr)return;const id=tr.dataset.id;
+  if(e.target.closest('.eb'))return openForm(D[tab].find(x=>x.id===id));
+  if(e.target.classList.contains('rc')||e.target.closest('td.ck')){if(e.target.classList.contains('rc'))e.target.checked?sel.add(id):sel.delete(id);else sel.has(id)?sel.delete(id):sel.add(id);render()}
+};
+$('#bsoft').onclick=()=>softDelete(ids());$('#brest').onclick=()=>restore(ids());$('#bhard').onclick=()=>hardDelete(ids());$('#bclr').onclick=()=>{sel.clear();render()};
+$('#purge').onclick=()=>{const idl=D[tab].filter(x=>x.deleted).map(x=>x.id);hardDelete(idl,`semua ${idl.length} baris yang ditandai terhapus`)};
+load();
+</script>
+</body>
+</html>
