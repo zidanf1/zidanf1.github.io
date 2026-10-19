@@ -115,12 +115,15 @@ const CFG={SUPABASE_URL:'https://csgmhwkvrfhabltzdghr.supabase.co',SUPABASE_KEY:
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nat=(a,b)=>String(a??'').localeCompare(String(b??''),undefined,{numeric:true});
+// nama tabel di Supabase (kunci = nama internal di halaman ini)
+const TBL={maps:'rows',items:'items'};
 const U=CFG.SUPABASE_URL.replace(/\/$/,'');
 const H={apikey:CFG.SUPABASE_KEY,'Content-Type':'application/json'};
 
 // ---------- API ----------
 async function api(method,path,body,prefer){
   const h={...H};if(prefer)h.Prefer=prefer;
+  path=path.replace(/^(maps|items)(?=[?]|$)/,m=>TBL[m]);
   const r=await fetch(U+'/rest/v1/'+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
   const t=await r.text();
   if(!r.ok){let m=t;try{const j=JSON.parse(t);m=j.message||j.hint||t;if(j.code==='23505')m='Data kembar: lotcode itu sudah ada.'}catch{}throw new Error(m||('HTTP '+r.status))}
