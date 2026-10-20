@@ -59,6 +59,16 @@ dialog .df{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 #err{color:var(--red);margin-top:10px;white-space:pre-wrap;display:none}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
 #toast.on{opacity:1}
+dialog.wide{width:min(780px,calc(100vw - 24px));max-height:calc(100vh - 24px)}
+dialog textarea{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;resize:vertical;min-width:0}
+dialog input[type=file]{width:100%}
+.hint{color:var(--mut);font-size:13px;margin-bottom:4px}
+#isum{margin-top:12px;font-size:13px;color:var(--mut)}
+#iprev{margin-top:8px;max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+#iprev:empty{display:none}
+#iprev th{cursor:default}
+#iprev table{font-size:13px}
+#ierr{color:var(--red);margin-top:10px;white-space:pre-wrap;display:none}
 @media (max-width:640px){.tw{max-height:none}}
 </style>
 </head>
@@ -83,6 +93,7 @@ dialog .df{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
     </select>
     <span class="sp"></span>
     <button class="btn" id="csv" type="button">Ekspor CSV</button>
+    <button class="btn" id="imp" type="button">Impor banyak</button>
     <button class="btn r" id="purge" type="button">Bersihkan yang ditandai hapus</button>
     <button class="btn p" id="add" type="button">+ Tambah</button>
   </div>
@@ -105,6 +116,20 @@ dialog .df{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
   <label class="chk" id="casw" hidden><input type="checkbox" id="fcas" checked> Ikut ubah lotcode di rak yang memakainya</label>
   <div id="err"></div>
   <div class="df"><button type="button" class="btn" id="cx">Batal</button><button class="btn p" id="sv" type="submit">Simpan</button></div>
+</form></dialog>
+<dialog id="dgi" class="wide"><form id="fi" method="dialog">
+  <h3 id="it"></h3>
+  <div class="hint" id="ih"></div>
+  <label for="ifile">File CSV / TXT</label>
+  <input type="file" id="ifile" accept=".csv,.tsv,.txt,text/csv,text/plain">
+  <label for="itxt">atau tempel dari Excel / Google Sheets</label>
+  <textarea id="itxt" rows="6" spellcheck="false" autocomplete="off"></textarea>
+  <label for="imode">Jika data sudah ada</label>
+  <select id="imode"><option value="skip">Lewati</option><option value="upd">Perbarui data yang ada</option></select>
+  <div id="isum"></div>
+  <div id="iprev"></div>
+  <div id="ierr"></div>
+  <div class="df"><button type="button" class="btn" id="icx">Tutup</button><button type="button" class="btn p" id="ido" disabled>Impor</button></div>
 </form></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -287,6 +312,116 @@ function exportCsv(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download=`${tab==='maps'?'rak':'lot'}-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+
+// ---------- Impor banyak baris ----------
+const ALIAS={idrak:['idrak','rak'],lotcode:['lotcode','lot','kodelot'],model:['model'],style:['style'],spk:['spk'],qty:['qty','jumlah'],deleted:['deleted','terhapus','hapus'],_skip:['updatedat','diubah','id']};
+let IMP={rows:[],n:{}};
+function parseTable(text){
+  text=text.replace(/^\uFEFF/,'');
+  const first=text.split(/\r?\n/).find(l=>l.trim())||'';
+  const c=ch=>first.split(ch).length-1;
+  const d=c('\t')>0?'\t':(c(';')>c(',')?';':',');
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=ch}
+    else if(ch==='"'&&f==='')q=true;
+    else if(ch===d){row.push(f);f=''}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[]}
+    else f+=ch;
+  }
+  if(f!==''||row.length){row.push(f);rows.push(row)}
+  return rows.filter(r=>r.some(v=>v.trim()!==''));
+}
+function buildImport(){
+  const err=$('#ierr');err.style.display='none';
+  const raw=parseTable($('#itxt').value);
+  IMP={rows:[],n:{}};
+  const sum=$('#isum'),prev=$('#iprev'),go=$('#ido');
+  go.disabled=true;go.textContent='Impor';
+  if(!raw.length){sum.textContent='';prev.innerHTML='';return}
+  const valid=FIELDS[tab].map(f=>f[0]).concat('deleted'),key=tab==='maps'?'idrak':'lotcode';
+  const hdr=raw[0].map(h=>{const n=h.toLowerCase().replace(/[^a-z0-9]/g,'');return Object.keys(ALIAS).find(k=>ALIAS[k].includes(n))||null});
+  let cols,body,line0;
+  if(hdr.some(Boolean)){cols=hdr.map(k=>valid.includes(k)?k:null);body=raw.slice(1);line0=2}
+  else{cols=FIELDS[tab].map(f=>f[0]);body=raw;line0=1}
+  if(!cols.includes(key)){sum.textContent='';prev.innerHTML='';err.textContent='Kolom '+(key==='idrak'?'IDRak':'Lotcode')+' tidak ditemukan di baris header.';err.style.display='block';return}
+  const present=FIELDS[tab].map(f=>f[0]).filter(k=>cols.includes(k)),hasDel=cols.includes('deleted');
+  // Rak: IDRak tidak unik, jadi baris dianggap sama bila IDRak DAN Lotcode sama. Lot: Lotcode.
+  const kf=x=>tab==='maps'?String(x.idrak??'').toUpperCase()+'\u0001'+String(x.lotcode??'').toUpperCase():String(x[key]??'').toUpperCase();
+  const ex=new Map();for(const x of D[tab]){const k=kf(x);if(String(x[key]??'')&&!ex.has(k))ex.set(k,x)}
+  const lots=new Set(D.items.filter(x=>!x.deleted).map(x=>x.lotcode));
+  const upd=tab==='items'&&$('#imode').value==='upd',seen=new Map(),n={new:0,upd:0,skip:0,err:0,warn:0};
+  body.forEach((cells,i)=>{
+    const line=line0+i,o={},msgs=[];let st='new',note='';
+    cols.forEach((k,j)=>{if(!k)return;const v=(cells[j]??'').trim();
+      if(k==='qty'){if(v===''){o.qty=0}else if(/^\d+$/.test(v)){o.qty=parseInt(v,10)}else{msgs.push('Qty bukan angka');o.qty=0}}
+      else if(k==='deleted')o.deleted=/^(1|true|ya|y|yes|t)$/i.test(v);
+      else o[k]=v.toUpperCase()});
+    if(!o[key])msgs.push((key==='idrak'?'IDRak':'Lotcode')+' kosong');
+    else if(seen.has(kf(o)))msgs.push('Kembar dengan baris '+seen.get(kf(o)));
+    else seen.set(kf(o),line);
+    const e=o[key]?ex.get(kf(o)):null;
+    if(msgs.length){st='err';note=msgs.join(', ')}
+    else if(e){
+      if(upd){st='upd';note='Akan diperbarui'+(e.deleted&&!hasDel?' (tetap terhapus)':'')}
+      else{st='skip';note='Sudah ada, dilewati'}
+    }else note='Baru';
+    if(st==='new'||st==='upd'){
+      if(tab==='maps'){if('lotcode'in o){if(!o.lotcode)o.lotcode=null;else if(!lots.has(o.lotcode)){note+=' · lot belum ada';n.warn++}}}
+      if(st==='new'){
+        const base=tab==='maps'?{idrak:'',lotcode:null,deleted:false}:{lotcode:'',model:'',style:'',spk:'',qty:0,deleted:false};
+        Object.assign(base,o);IMP.rows.push({line,st,note,o:base,show:o});
+      }else{const p={...o};delete p[key];IMP.rows.push({line,st,note,o:p,ex:e,show:o})}
+    }else IMP.rows.push({line,st,note,o,show:o});
+    n[st]++;
+  });
+  IMP.n=n;
+  const cs=present.concat(hasDel?['deleted']:[]),lbl=Object.fromEntries(FIELDS[tab].map(f=>[f[0],f[1].replace(/ \(.*/,'')]).concat([['deleted','Terhapus']]));
+  const rank=r=>r.st==='err'?0:(/lot belum ada/.test(r.note)?1:2),shown=[...IMP.rows].sort((a,b)=>rank(a)-rank(b)||a.line-b.line).slice(0,300);
+  prev.innerHTML='<table><thead><tr><th>Baris</th>'+cs.map(k=>`<th>${lbl[k]}</th>`).join('')+'<th>Status</th></tr></thead><tbody>'+
+    shown.map(r=>{const cls=r.st==='err'?'d':(r.st==='skip'||/lot belum ada/.test(r.note))?'w':'o';
+      return `<tr><td>${r.line}</td>${cs.map(k=>`<td${k==='qty'?' class="num"':''}>${k==='deleted'?(r.show.deleted?'ya':''):esc(r.show[k])}</td>`).join('')}<td><span class="tag ${cls}">${esc(r.note)}</span></td></tr>`}).join('')+'</tbody></table>';
+  sum.textContent=`${IMP.rows.length} baris dibaca · ${n.new} baru · ${n.upd} diperbarui · ${n.skip} dilewati · ${n.err} salah`+(n.warn?` · ${n.warn} lot belum ada`:'')+(IMP.rows.length>300?' · pratinjau 300 baris (yang bermasalah di atas)':'');
+  const k=n.new+n.upd;go.disabled=!k;go.textContent=k?`Impor ${k} baris`:'Impor';
+}
+function openImport(){
+  $('#it').textContent='Impor banyak '+(tab==='maps'?'rak':'lot');
+  $('#ih').textContent=tab==='maps'
+    ?'Kolom: IDRak, Lotcode (lotcode boleh kosong = rak kosong). Baris header boleh ada; tanpa header urutannya IDRak, Lotcode. IDRak boleh sama di beberapa baris; baris dianggap sudah ada hanya jika IDRak dan Lotcode sama persis, dan baris seperti itu dilewati.'
+    :'Kolom: Lotcode, Model, Style, SPK, Qty. Baris header boleh ada; tanpa header urutannya seperti itu. Data dianggap sama jika Lotcode sama.';
+  $('#itxt').value='';$('#ifile').value='';$('#imode').value='skip';
+  document.querySelectorAll('label[for=imode],#imode').forEach(el=>el.style.display=tab==='maps'?'none':'');
+  $('#itxt').placeholder=tab==='maps'?'A-01\tLOT123\nA-02\t':'LOT123\tMODEL X\tSTYLE Y\tSPK1\t50';
+  buildImport();$('#dgi').showModal();$('#itxt').focus();
+}
+async function runImport(){
+  const ins=IMP.rows.filter(r=>r.st==='new'),upd=IMP.rows.filter(r=>r.st==='upd'),total=ins.length+upd.length;
+  if(!total)return;
+  if(!confirm(`Impor ${total} baris ke ${tab==='maps'?'Rak':'Lot'}?\n${ins.length} baru, ${upd.length} diperbarui.`))return;
+  const go=$('#ido');go.disabled=true;let done=0,fail=null;
+  try{
+    for(const c of chunks(ins,100)){
+      go.textContent=`Menyimpan ${done}/${total}…`;
+      merge(tab,await api('POST',tab,c.map(r=>r.o),'return=representation'));done+=c.length;
+    }
+    for(const c of chunks(upd,5)){
+      go.textContent=`Menyimpan ${done}/${total}…`;
+      const res=await Promise.all(c.map(r=>api('PATCH',`${tab}?id=eq.${r.ex.id}`,r.o,'return=representation')));
+      res.forEach(x=>merge(tab,x));done+=c.length;
+    }
+  }catch(e){fail=e.message}
+  render();
+  if(fail){
+    buildImport();
+    const er=$('#ierr');er.textContent=`Tersimpan ${done} dari ${total} baris, lalu berhenti: ${fail}\nBaris yang sudah tersimpan kini tampil "sudah ada". Perbaiki lalu impor lagi, atau "Muat ulang" bila data dari HP lain belum termuat.`;er.style.display='block';
+  }else{$('#dgi').close();toast(done+' baris diimpor',3500)}
+}
+let impT;
+$('#imp').onclick=openImport;$('#icx').onclick=()=>$('#dgi').close();
+$('#itxt').oninput=()=>{clearTimeout(impT);impT=setTimeout(buildImport,250)};
+$('#imode').onchange=buildImport;$('#ido').onclick=runImport;
+$('#ifile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$('#itxt').value=await f.text();buildImport()}catch(er){alert('Gagal membaca file: '+er.message)}};
 
 // ---------- Event ----------
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sel.clear();sk='';sd=1;$('#q').value='';render()});
