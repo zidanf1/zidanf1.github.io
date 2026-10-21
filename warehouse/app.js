@@ -1,4 +1,4 @@
-window.WH_VER='31';
+window.WH_VER='32';
 function whFix(msg){var ok=false;try{ok=sessionStorage.getItem('wh_fix')}catch(e){}
  if(!ok){try{sessionStorage.setItem('wh_fix','1')}catch(e){}
   Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0]).then(function(){location.reload()},function(){location.reload()});return}
@@ -77,7 +77,7 @@ $('#sq').addEventListener('input',()=>render());
 $('#sx').onclick=()=>{$('#sq').value='';render();$('#sq').focus()};
 $('#sq').addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sq').value='';render()}});
 // ?q=... di URL mengisi kotak cari (mis. index.html?q=A1-1)
-{const uq=new URLSearchParams(location.search).get('q');if(uq){$('#sq').value=uq.toUpperCase();render()}}
+{const uq=new URLSearchParams(location.search).get('q');if(uq)$('#sq').value=uq.toUpperCase()}   // hanya isi kotak; render() dipanggil load() setelah data masuk
 const sortSave=()=>{try{localStorage.setItem('wh_sort',JSON.stringify({m:SORTM,d:sort}))}catch{}};
 $('#sortSel').onchange=e=>{SORTM=e.target.value;sortSave();render()};
 $('#sortDir').onclick=()=>{sort=-sort;sortSave();render()};

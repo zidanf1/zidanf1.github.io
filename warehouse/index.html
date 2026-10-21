@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Warehouse</title><meta name="app-version" content="31"><meta name="theme-color" content="#3d7ab5">
+<title>Warehouse</title><meta name="app-version" content="32"><meta name="theme-color" content="#3d7ab5">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icons/icon-192.png">
 <style>
 :root{color-scheme:light dark;--card:#fff;--row:#d7dee7;--hov:#f3f7fb;--sub:#667;--bd:#c8d0da;--bl:#3d7ab5;--dk:#2c5f8a;--lt:#e9f0f8;--gr:#137a48;--bg:#f4f6f9;--tx:#1d2733;--ln:#dfe5ec}
@@ -189,7 +189,7 @@ td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     <div class="seg" data-key="size"><button data-v="s">Kecil</button><button data-v="m">Normal</button><button data-v="l">Besar</button></div>
     <div class="mh2">Kepadatan baris</div>
     <div class="seg" data-key="dens"><button data-v="c">Rapat</button><button data-v="n">Nyaman</button></div>
-    <hr><small>Versi 31</small>
+    <hr><small>Versi 32</small>
   </div>
 </header>
 <div id="toasts" role="status" aria-live="polite"></div>
@@ -270,5 +270,5 @@ td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 <script>(function(){function whFix(msg){var ok=false;try{ok=sessionStorage.getItem('wh_fix')}catch(e){}
  if(!ok){try{sessionStorage.setItem('wh_fix','1')}catch(e){}
   Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0]).then(function(){location.reload()},function(){location.reload()});return}
- var d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:14px sans-serif';d.textContent=msg;document.body.appendChild(d)}if(window.WH_VER!=='31')whFix('app.js tidak sama versinya dengan index.html. Ganti keduanya dengan isi warehouse-final.zip terbaru, lalu tekan Ctrl+Shift+R.')})();</script>
+ var d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:14px sans-serif';d.textContent=msg;document.body.appendChild(d)}if(window.WH_VER!=='32')whFix('app.js tidak sama versinya dengan index.html. Ganti keduanya dengan isi warehouse-final.zip terbaru, lalu tekan Ctrl+Shift+R.')})();</script>
 </body></html>
