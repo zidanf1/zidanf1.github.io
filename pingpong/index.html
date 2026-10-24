@@ -24,7 +24,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--p2);outline-off
 #msg{color:var(--dim);font-size:13px;min-height:1.3em;margin:0}
 ol{margin:0;padding-left:22px;font-size:14px;line-height:1.6}
 .code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--p1);text-align:center}
-#snd{position:absolute;top:6px;right:6px;z-index:3;padding:4px 9px;font-size:12px;opacity:.85}
+#tools{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:6px}
+#tools button{padding:4px 9px;font-size:12px;opacity:.85}
+#wrap.pfs{position:fixed;inset:0;z-index:50;width:auto;margin:0!important;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.pfs canvas{width:min(100%,160vh);width:min(100%,160dvh);height:auto;border-radius:0;border:0}
+.pfs #ov{border-radius:0}.pfs #rot{display:none}
+.pfs #tools{top:calc(6px + env(safe-area-inset-top,0px));right:calc(6px + env(safe-area-inset-right,0px))}
 .hide{display:none!important}
 #rot{display:none;position:absolute;left:0;right:0;bottom:-34px;text-align:center;color:var(--dim);font-size:13px}
 @media (orientation:portrait) and (max-width:700px){#rot{display:block}#wrap{margin-bottom:34px}}
@@ -57,7 +62,7 @@ small{color:var(--dim)}
  </div>
  <p id="msg"></p>
 </div></div>
-<button id="snd" class="s" aria-label="Suara">Suara: nyala</button>
+<div id="tools"><button id="fs" class="s">Layar penuh</button><button id="snd" class="s" aria-label="Suara">Suara: nyala</button></div>
 <div id="rot">Putar HP ke samping agar layar lebih luas.</div>
 </div>
 
@@ -144,6 +149,19 @@ function sfx(list){
 //</AUDIO>
 
 // ---------- UI & jaringan ----------
+//<FS>
+function setFs(on){$('wrap').classList.toggle('pfs',on);$('fs').textContent=on?'Keluar layar penuh':'Layar penuh';}
+function fsActive(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function toggleFs(){
+  const w=$('wrap');
+  if(fsActive()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+  if(w.classList.contains('pfs')){setFs(false);return;}
+  const req=w.requestFullscreen||w.webkitRequestFullscreen;
+  if(!req){setFs(true);return;}
+  let r;try{r=req.call(w);}catch(e){setFs(true);return;}
+  Promise.resolve(r).then(()=>{try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>setFs(true));
+}
+//</FS>
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
@@ -229,6 +247,7 @@ $('b-cancel').onclick=()=>{say('');leave();};$('b-menu').onclick=()=>{say('');le
 addEventListener('keydown',e=>{
   keys[e.code]=true;
   if(e.code==='KeyM'&&e.target.tagName!=='INPUT')toggleSnd();
+  if(e.code==='KeyF'&&e.target.tagName!=='INPUT')toggleFs();
   if(['ArrowUp','ArrowDown','Space'].includes(e.code)&&mode!=='menu'&&e.target.tagName!=='INPUT')e.preventDefault();
   if(e.code==='Escape'&&mode!=='menu'){say('');leave();}
 });
@@ -236,6 +255,8 @@ addEventListener('keyup',e=>{keys[e.code]=false;});
 function toggleSnd(){soundOn=!soundOn;$('snd').textContent=soundOn?'Suara: nyala':'Suara: mati';try{localStorage.setItem('pongSound',soundOn?'on':'off');}catch(e){}if(soundOn){unlock();tone(440,0.06,'triangle',0.15);}}
 $('snd').textContent=soundOn?'Suara: nyala':'Suara: mati';
 $('snd').onclick=toggleSnd;
+$('fs').onclick=toggleFs;
+for(const t of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(t,()=>setFs(!!fsActive()));
 for(const t of['pointerdown','keydown','click'])addEventListener(t,unlock);
 const ptrs=new Map(),pts=()=>[...ptrs.values()];
 function ptrPos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*CFG.W,y:(e.clientY-r.top)/r.height*CFG.H};}
