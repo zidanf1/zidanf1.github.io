@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pong Hard Mode</title>
+<style>
+:root{--bg:#0e2238;--court:#0a1a2c;--line:#3b587a;--p1:#ffb703;--p2:#8ecae6;--fg:#eef4fa;--dim:#8fa6bf;--card:#16304c}
+*{box-sizing:border-box}
+body{margin:0;touch-action:manipulation;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;min-height:100vh;background:var(--bg);color:var(--fg);font-family:"Trebuchet MS",Verdana,sans-serif;display:flex;align-items:center;justify-content:center}
+#wrap{position:relative;width:min(96vw,800px)}
+canvas{touch-action:none;width:100%;display:block;background:var(--court);border:2px solid var(--line);border-radius:6px;aspect-ratio:8/5}
+#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,26,44,.9);border-radius:6px;padding:10px}
+.card{background:var(--card);border-radius:10px;padding:18px;width:min(94%,380px);display:flex;flex-direction:column;gap:10px;max-height:100%;overflow:auto}
+h1{margin:0;font-size:26px;font-weight:800;font-style:italic}
+h1 b{color:var(--p1)}h1 i{color:var(--p2)}
+h2{margin:0;font-size:18px}
+input,button{font:inherit;padding:10px;border-radius:6px;border:1px solid var(--line);background:var(--court);color:var(--fg)}
+button{cursor:pointer;background:var(--p1);color:#1d1400;border:0;font-weight:700}
+button.s{background:#244667;color:var(--fg)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p2);outline-offset:2px}
+.row{display:flex;gap:8px}.row input{flex:1;min-width:0;text-transform:uppercase}
+#msg{color:var(--dim);font-size:13px;min-height:1.3em;margin:0}
+ol{margin:0;padding-left:22px;font-size:14px;line-height:1.6}
+.code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--p1);text-align:center}
+#snd{position:absolute;top:6px;right:6px;z-index:3;padding:4px 9px;font-size:12px;opacity:.85}
+.hide{display:none!important}
+#rot{display:none;position:absolute;left:0;right:0;bottom:-34px;text-align:center;color:var(--dim);font-size:13px}
+@media (orientation:portrait) and (max-width:700px){#rot{display:block}#wrap{margin-bottom:34px}}
+small{color:var(--dim)}
+</style>
+</head>
+<body>
+<div id="wrap">
+<canvas id="cv" width="800" height="500"></canvas>
+<div id="ov"><div class="card">
+ <div id="v-menu" style="display:contents">
+  <h1><b>Pong</b> <i>Hard</i></h1>
+  <input id="name" maxlength="16" placeholder="Nama kamu" aria-label="Nama kamu">
+  <button id="b-local">Main lokal (satu keyboard)</button>
+  <button id="b-create" class="s">Buat room online</button>
+  <div class="row"><input id="code" maxlength="5" placeholder="Kode room" aria-label="Kode room"><button id="b-join" class="s">Gabung</button></div>
+  <button id="b-lb" class="s">Papan skor</button>
+  <small>Keyboard: lokal kiri W/S, kanan ↑/↓; online W/S atau ↑/↓. HP: geser jari (lokal: setengah layar kiri dan kanan; online: di mana saja). Menang di 7 poin. Bola makin cepat, paddle makin kecil.</small>
+ </div>
+ <div id="v-wait" class="hide" style="display:contents">
+  <h2>Menunggu lawan</h2><div class="code" id="roomcode">-----</div>
+  <small>Bagikan kode ini ke temanmu.</small><button id="b-cancel" class="s">Batal</button>
+ </div>
+ <div id="v-lb" class="hide" style="display:contents">
+  <h2>Papan skor</h2><ol id="lblist"></ol><button id="b-back" class="s">Kembali</button>
+ </div>
+ <div id="v-over" class="hide" style="display:contents">
+  <h2 id="overtxt"></h2><div id="oversc"></div>
+  <button id="b-again">Main lagi</button><button id="b-menu" class="s">Menu</button>
+ </div>
+ <p id="msg"></p>
+</div></div>
+<button id="snd" class="s" aria-label="Suara">Suara: nyala</button>
+<div id="rot">Putar HP ke samping agar layar lebih luas.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script>
+// ===== ISI DI SINI =====
+const SUPABASE_URL = 'https://hqfuxmjjqnxvjgwncvlm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_dZKspUNyywESJAcHdEQufQ_3ZxnAe5w'; // kunci publishable (aman di klien)
+// =======================
+
+//<LOGIC>
+const CFG={W:800,H:500,PW:12,PX:24,R:8,H0:110,HMIN:44,SHRINK:6,V0:380,VMAX:920,ACC:1.07,PSPD:440,WIN:7,MAXANG:Math.PI/3};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function newState(){return{bx:CFG.W/2,by:CFG.H/2,vx:0,vy:0,y1:CFG.H/2,y2:CFG.H/2,s1:0,s2:0,hits:0,wait:1.5,serveDir:1,over:false,winner:0};}
+function padH(s){return Math.max(CFG.HMIN,CFG.H0-CFG.SHRINK*(s.s1+s.s2));}
+function serve(s){const a=Math.random()*0.8-0.4;s.vx=Math.cos(a)*CFG.V0*s.serveDir;s.vy=Math.sin(a)*CFG.V0;s.hits=0;}
+function hit(s,dir,py,h){
+  const rel=clamp((s.by-py)/(h/2),-1,1),sp=Math.min(CFG.VMAX,Math.hypot(s.vx,s.vy)*CFG.ACC),a=rel*CFG.MAXANG;
+  s.vx=dir*Math.cos(a)*sp;s.vy=Math.sin(a)*sp;s.hits++;
+  s.bx=dir===1?CFG.PX+CFG.PW+CFG.R:CFG.W-CFG.PX-CFG.PW-CFG.R;
+}
+function point(s,who){
+  if(who===1)s.s1++;else s.s2++;
+  s.bx=CFG.W/2;s.by=CFG.H/2;s.vx=0;s.vy=0;s.wait=1.0;s.serveDir=who===1?1:-1;
+  if(s.s1>=CFG.WIN||s.s2>=CFG.WIN){s.over=true;s.winner=who;}
+}
+function step(s,dt,in1,in2){
+  if(s.over)return;
+  const h=padH(s);
+  s.y1=clamp(s.y1+in1*CFG.PSPD*dt,h/2,CFG.H-h/2);
+  s.y2=clamp(s.y2+in2*CFG.PSPD*dt,h/2,CFG.H-h/2);
+  if(s.wait>0){s.wait-=dt;if(s.wait<=0){s.wait=0;serve(s);}return;}
+  s.bx+=s.vx*dt;s.by+=s.vy*dt;
+  if(s.by<CFG.R){s.by=CFG.R;s.vy=Math.abs(s.vy);}
+  if(s.by>CFG.H-CFG.R){s.by=CFG.H-CFG.R;s.vy=-Math.abs(s.vy);}
+  const m=h/2+CFG.R*0.5;
+  if(s.vx<0&&s.bx-CFG.R<=CFG.PX+CFG.PW&&s.bx+CFG.R>=CFG.PX&&Math.abs(s.by-s.y1)<=m)hit(s,1,s.y1,h);
+  else if(s.vx>0&&s.bx+CFG.R>=CFG.W-CFG.PX-CFG.PW&&s.bx-CFG.R<=CFG.W-CFG.PX&&Math.abs(s.by-s.y2)<=m)hit(s,-1,s.y2,h);
+  if(s.bx<-CFG.R)point(s,2);else if(s.bx>CFG.W+CFG.R)point(s,1);
+}
+function touchDir(pts,side,y){
+  const p=pts.find(q=>side===0||(side===1?q.x<CFG.W/2:q.x>=CFG.W/2));
+  if(!p)return 0;const d=p.y-y;return Math.abs(d)<8?0:Math.sign(d);
+}
+function detect(a,b){
+  const e=[];if(!a||!b)return e;
+  if(a.vx*b.vx<0)e.push({t:'hit',sp:Math.hypot(b.vx,b.vy)});
+  else if(a.vy*b.vy<0)e.push({t:'wall'});
+  if(a.s1+a.s2!==b.s1+b.s2)e.push({t:'score'});
+  if(!a.over&&b.over)e.push({t:'win'});
+  return e;
+}
+function pack(s){const r=Math.round;return{bx:r(s.bx),by:r(s.by),vx:r(s.vx),vy:r(s.vy),y1:r(s.y1),y2:r(s.y2),s1:s.s1,s2:s.s2,wait:Math.round(s.wait*10)/10,over:s.over,winner:s.winner};}
+function smooth(V,T,dt){
+  for(const k of['bx','by','y1','y2']){const d=T[k]-V[k];V[k]=Math.abs(d)>120?T[k]:V[k]+d*Math.min(1,dt*25);}
+  for(const k of['vx','vy','s1','s2','wait','over','winner'])V[k]=T[k];
+}
+//</LOGIC>
+
+//<AUDIO>
+let AC=null,soundOn=true;
+try{soundOn=localStorage.getItem('pongSound')!=='off';}catch(e){}
+function unlock(){
+  try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C();}
+  if(AC&&AC.state==='suspended')AC.resume();}catch(e){}
+}
+function tone(f,d,type,g,f2,at){
+  if(!AC||!soundOn)return;
+  const t=AC.currentTime+(at||0),o=AC.createOscillator(),v=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  v.gain.setValueAtTime(g,t);v.gain.exponentialRampToValueAtTime(0.001,t+d);
+  o.connect(v);v.connect(AC.destination);o.start(t);o.stop(t+d+0.02);
+}
+function sfx(list){
+  const win=list.some(e=>e.t==='win');
+  for(const e of list){
+    if(e.t==='hit')tone(220+e.sp*0.45,0.08,'square',0.12);
+    else if(e.t==='wall')tone(170,0.06,'triangle',0.2);
+    else if(e.t==='score'&&!win)tone(420,0.28,'sine',0.25,140);
+    else if(e.t==='win')[523,659,784].forEach((f,i)=>tone(f,0.18,'triangle',0.22,0,i*0.12));
+  }
+}
+//</AUDIO>
+
+// ---------- UI & jaringan ----------
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d');
+const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const myId=Math.random().toString(36).slice(2,10);
+let mode='menu',S=null,V=null,T=null,ch=null,room='',n1='Pemain 1',n2='Pemain 2',gid=null,in2=0,saved=false,joinTimer=null;
+const keys={};
+const say=t=>{$('msg').textContent=t||'';};
+const views=['menu','wait','lb','over'];
+function view(v){views.forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));$('ov').classList.remove('hide');}
+function hideOv(){$('ov').classList.add('hide');}
+function myName(){try{localStorage.setItem('pongName',$('name').value);}catch(e){}return($('name').value.trim()||'Pemain').slice(0,16);}
+try{$('name').value=localStorage.getItem('pongName')||'';}catch(e){}
+if(!sb)say('Mode online mati: isi SUPABASE_URL dan SUPABASE_ANON_KEY di index.html.');
+$('b-create').disabled=$('b-join').disabled=$('b-lb').disabled=!sb;
+
+function leave(){
+  clearTimeout(joinTimer);
+  if(ch&&sb){sb.removeChannel(ch);}
+  ch=null;mode='menu';S=V=T=null;gid=null;in2=0;saved=false;view('menu');
+}
+function showOver(s,a,b){
+  mode='over';
+  $('overtxt').textContent=(s.winner===1?a:b)+' menang!';
+  $('oversc').textContent=a+' '+s.s1+' : '+s.s2+' '+b;
+  $('b-again').classList.toggle('hide',!S||room!=='');
+  view('over');
+}
+function startLocal(){n1='Kiri';n2='Kanan';room='';S=newState();mode='local';say('');hideOv();}
+
+function openChannel(code,role){
+  room=code;
+  ch=sb.channel('pong:'+code,{config:{broadcast:{self:false},presence:{key:myId}}});
+  ch.on('broadcast',{event:'state'},({payload})=>{
+    if(role!=='guest'||payload.g!==myId)return;
+    clearTimeout(joinTimer);
+    if(mode!=='guest'&&mode!=='over'){mode='guest';n1=payload.n1;n2=payload.n2;V={...payload};hideOv();say('');}
+    sfx(detect(T,payload));T=payload;n1=payload.n1;n2=payload.n2;
+  });
+  ch.on('broadcast',{event:'input'},({payload})=>{if(role==='host'&&payload.id===gid)in2=clamp(payload.d|0,-1,1);});
+  ch.on('presence',{event:'sync'},()=>{
+    const st=ch.presenceState(),list=[];
+    for(const k in st)for(const p of st[k])list.push({key:k,...p});
+    if(role==='host'){
+      const g=list.find(p=>p.role==='guest');
+      if(g&&mode==='waiting'){gid=g.key;n1=myName();n2=g.name;S=newState();S.wait=2.5;saved=false;mode='host';hideOv();say('');}
+      else if(!g&&mode==='host'){say('Lawan keluar dari room.');S.over=true;showOver({winner:S.s1>S.s2?1:2,s1:S.s1,s2:S.s2},n1,n2);}
+    }else if(mode==='guest'&&!list.some(p=>p.role==='host')){
+      say('Host keluar dari room.');leave();
+    }
+  });
+  ch.subscribe(async s=>{
+    if(s==='SUBSCRIBED')await ch.track({role,name:myName()});
+    if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'){say('Koneksi ke Supabase gagal.');leave();}
+  });
+}
+function createRoom(){
+  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<5;i++)c+=A[Math.floor(Math.random()*A.length)];
+  mode='waiting';$('roomcode').textContent=c;say('');view('wait');openChannel(c,'host');
+}
+function joinRoom(){
+  const c=$('code').value.trim().toUpperCase();
+  if(c.length!==5){say('Kode room harus 5 karakter.');return;}
+  say('Mencari room...');mode='joining';openChannel(c,'guest');
+  joinTimer=setTimeout(()=>{if(mode!=='guest'){say('Room tidak ditemukan atau sudah penuh.');leave();}},8000);
+}
+async function finishHost(){
+  if(saved)return;saved=true;
+  showOver(S,n1,n2);
+  const{error}=await sb.from('matches').insert({room,p1_name:n1,p2_name:n2,p1_score:S.s1,p2_score:S.s2,winner:S.winner===1?n1:n2});
+  say(error?'Skor gagal disimpan: '+error.message:'Skor tersimpan.');
+}
+async function showLb(){
+  view('lb');$('lblist').innerHTML='';say('Memuat...');
+  const{data,error}=await sb.from('leaderboard').select('*').order('wins',{ascending:false}).limit(10);
+  if(error){say('Gagal memuat: '+error.message);return;}
+  say(data.length?'':'Belum ada pertandingan.');
+  for(const r of data){const li=document.createElement('li');li.textContent=r.name+' – '+r.wins+' menang';$('lblist').appendChild(li);}
+}
+
+$('b-local').onclick=startLocal;$('b-create').onclick=createRoom;$('b-join').onclick=joinRoom;
+$('b-lb').onclick=showLb;$('b-back').onclick=()=>{say('');view('menu');};
+$('b-cancel').onclick=()=>{say('');leave();};$('b-menu').onclick=()=>{say('');leave();};$('b-again').onclick=startLocal;
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='KeyM'&&e.target.tagName!=='INPUT')toggleSnd();
+  if(['ArrowUp','ArrowDown','Space'].includes(e.code)&&mode!=='menu'&&e.target.tagName!=='INPUT')e.preventDefault();
+  if(e.code==='Escape'&&mode!=='menu'){say('');leave();}
+});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+function toggleSnd(){soundOn=!soundOn;$('snd').textContent=soundOn?'Suara: nyala':'Suara: mati';try{localStorage.setItem('pongSound',soundOn?'on':'off');}catch(e){}if(soundOn){unlock();tone(440,0.06,'triangle',0.15);}}
+$('snd').textContent=soundOn?'Suara: nyala':'Suara: mati';
+$('snd').onclick=toggleSnd;
+for(const t of['pointerdown','keydown','click'])addEventListener(t,unlock);
+const ptrs=new Map(),pts=()=>[...ptrs.values()];
+function ptrPos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*CFG.W,y:(e.clientY-r.top)/r.height*CFG.H};}
+cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,ptrPos(e));try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+cv.addEventListener('pointermove',e=>{if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,ptrPos(e));});
+for(const t of['pointerup','pointercancel'])cv.addEventListener(t,e=>ptrs.delete(e.pointerId));
+const dWS=()=>(keys.KeyS?1:0)-(keys.KeyW?1:0), dAR=()=>(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
+
+function draw(s){
+  ctx.clearRect(0,0,CFG.W,CFG.H);
+  ctx.strokeStyle='#3b587a';ctx.lineWidth=3;ctx.setLineDash([12,14]);
+  ctx.beginPath();ctx.moveTo(CFG.W/2,0);ctx.lineTo(CFG.W/2,CFG.H);ctx.stroke();ctx.setLineDash([]);
+  const h=padH(s);
+  ctx.fillStyle='#ffb703';ctx.fillRect(CFG.PX,s.y1-h/2,CFG.PW,h);
+  ctx.fillStyle='#8ecae6';ctx.fillRect(CFG.W-CFG.PX-CFG.PW,s.y2-h/2,CFG.PW,h);
+  ctx.fillStyle='#eef4fa';ctx.beginPath();ctx.arc(s.bx,s.by,CFG.R,0,7);ctx.fill();
+  ctx.font='bold 56px "Trebuchet MS",sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#ffb703';ctx.fillText(s.s1,CFG.W/2-70,64);
+  ctx.fillStyle='#8ecae6';ctx.fillText(s.s2,CFG.W/2+70,64);
+  ctx.font='14px "Trebuchet MS",sans-serif';ctx.fillStyle='#8fa6bf';
+  ctx.textAlign='left';ctx.fillText(n1,CFG.PX,CFG.H-12);ctx.textAlign='right';ctx.fillText(n2,CFG.W-CFG.PX,CFG.H-12);
+  ctx.textAlign='center';ctx.fillText('kecepatan '+Math.round(Math.hypot(s.vx,s.vy)),CFG.W/2,CFG.H-12);
+  if(s.wait>0){ctx.font='bold 30px "Trebuchet MS",sans-serif';ctx.fillStyle='#eef4fa';ctx.fillText('Siap...',CFG.W/2,CFG.H/2-30);}
+}
+
+let last=performance.now(),lastSend=0,lastIn=0,lastD=0;
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(mode==='local'||mode==='host'){
+    const a=mode==='local'?(dWS()||touchDir(pts(),1,S.y1)):(dWS()||dAR()||touchDir(pts(),0,S.y1)),b=mode==='local'?(dAR()||touchDir(pts(),2,S.y2)):in2;
+    const n=Math.ceil(dt/(1/120))||1;
+    const prev={vx:S.vx,vy:S.vy,s1:S.s1,s2:S.s2,over:S.over};
+    for(let i=0;i<n;i++)step(S,dt/n,a,b);
+    sfx(detect(prev,S));
+    if(mode==='host'&&now-lastSend>33){lastSend=now;ch.send({type:'broadcast',event:'state',payload:{...pack(S),g:gid,n1,n2}});}
+    if(S.over){if(mode==='host'){ch.send({type:'broadcast',event:'state',payload:{...pack(S),g:gid,n1,n2}});finishHost();}else showOver(S,n1,n2);}
+    draw(S);
+  }else if(mode==='guest'&&V&&T){
+    smooth(V,T,dt);
+    const d=dWS()||dAR()||touchDir(pts(),0,V.y2);
+    if(d!==lastD||now-lastIn>50){lastD=d;lastIn=now;ch.send({type:'broadcast',event:'input',payload:{id:myId,d}});}
+    draw(V);
+    if(V.over)showOver(V,n1,n2);
+  }else if(mode==='over'&&(S||V))draw(S||V);
+  else{draw(newState());}
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
