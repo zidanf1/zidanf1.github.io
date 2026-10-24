@@ -25,12 +25,19 @@ ol{margin:0;padding-left:22px;font-size:15px;line-height:1.7;font-weight:700}
 .code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--gold);text-align:center}
 #tools{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:6px}
 #tools button{padding:4px 9px;font-size:12px;opacity:.85}
-.db{position:absolute;bottom:14px;z-index:3;width:84px;height:84px;border-radius:50%;font-size:15px;opacity:.85;touch-action:none}
-#db0{left:14px}#db1{right:14px}
+.pad{position:relative;width:128px;height:128px;border-radius:50%;border:3px solid var(--line);background:rgba(36,70,103,.45);touch-action:none;flex:none}
+.knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:var(--gold);opacity:.9;pointer-events:none}
+.db{width:88px;height:88px;border-radius:50%;font-size:14px;touch-action:none;flex:none}
+#stage{position:relative}
+#ctl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 4px 0}
+.grp{display:flex;align-items:center;gap:12px}
 #rot{display:none;position:absolute;left:0;right:0;bottom:-34px;text-align:center;color:var(--dim);font-size:13px}
 @media (orientation:portrait) and (max-width:700px){#rot{display:block}#wrap{margin-bottom:34px}}
 #wrap.pfs{position:fixed;inset:0;z-index:50;width:auto;margin:0!important;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.pfs canvas{width:min(100%,133vh);width:min(100%,133dvh);height:auto;border-radius:0;border:0}
+.pfs #stage{width:min(100%,133vh);width:min(100%,133dvh)}
+.pfs canvas{height:auto;border-radius:0;border:0}
+.pfs #ctl{position:absolute;left:0;right:0;bottom:0;padding:0 calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));pointer-events:none}
+.pfs #ctl .pad,.pfs #ctl .db{pointer-events:auto}
 .pfs #ov{border-radius:0}.pfs #rot{display:none}
 .pfs #tools{top:calc(6px + env(safe-area-inset-top,0px));right:calc(6px + env(safe-area-inset-right,0px))}
 .hide{display:none!important}
@@ -39,6 +46,7 @@ small{color:var(--dim);line-height:1.4}
 </head>
 <body>
 <div id="wrap">
+<div id="stage">
 <canvas id="cv" width="800" height="600"></canvas>
 <div id="ov"><div class="card">
  <div id="v-menu" style="display:contents">
@@ -48,7 +56,7 @@ small{color:var(--dim);line-height:1.4}
   <button id="b-create" class="s">Buat room online</button>
   <div class="row"><input id="code" maxlength="5" placeholder="Kode room" aria-label="Kode room"><button id="b-join" class="s">Gabung</button></div>
   <button id="b-lb" class="s">Papan skor</button>
-  <small>Dorong lawan keluar arena. Arena menyusut, dash punya cooldown, makin banyak damage makin jauh terpental. Juara: 3 ronde.<br>Lokal: P1 WASD+Q, P2 panah+Enter, P3 IJKL+U, P4 TFGH+R. Online: WASD/panah + Spasi. HP: geser jari untuk gerak, tombol bulat untuk dash.</small>
+  <small>Dorong lawan keluar arena. Arena menyusut, dash punya cooldown, makin banyak damage makin jauh terpental. Juara: 3 ronde.<br>Lokal: P1 WASD+Q, P2 panah+Enter, P3 IJKL+U, P4 TFGH+R. Online: WASD/panah + Spasi. HP: joystick di bawah layar untuk gerak, tombol bulat untuk dash.</small>
  </div>
  <div id="v-lobby" class="hide" style="display:contents">
   <h2>Lobi room</h2><div class="code" id="roomcode">-----</div>
@@ -64,8 +72,12 @@ small{color:var(--dim);line-height:1.4}
  </div>
  <p id="msg"></p>
 </div></div>
-<button id="db0" class="db hide">Dash</button><button id="db1" class="db hide">Dash</button>
 <div id="tools"><button id="fs" class="s">Layar penuh</button><button id="snd" class="s" aria-label="Suara">Suara: nyala</button></div>
+</div>
+<div id="ctl" class="hide">
+ <div class="grp"><div id="pad0" class="pad" aria-label="Joystick"><div class="knob"></div></div><button id="db0" class="db hide">Dash P1</button></div>
+ <div class="grp"><button id="db1" class="db hide">Dash</button><div id="pad1" class="pad hide" aria-label="Joystick pemain 2"><div class="knob"></div></div></div>
+</div>
 <div id="rot">Putar HP ke samping agar layar lebih luas.</div>
 </div>
 
@@ -228,9 +240,9 @@ const COL=['#ffb703','#8ecae6','#ff6b6b','#7bd8a4'];
 const KM=[{u:'KeyW',d:'KeyS',l:'KeyA',r:'KeyD',x:'KeyQ'},{u:'ArrowUp',d:'ArrowDown',l:'ArrowLeft',r:'ArrowRight',x:'Enter'},
   {u:'KeyI',d:'KeyK',l:'KeyJ',r:'KeyL',x:'KeyU'},{u:'KeyT',d:'KeyG',l:'KeyF',r:'KeyH',x:'KeyR'}];
 const DASHK=['Space','Enter','KeyQ','ShiftLeft','ShiftRight'];
-const coarse=window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+const coarse=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||location.search.includes('touch');
 let mode='menu',S=null,V=null,T=null,ch=null,role='',room='',nm=['P1','P2','P3','P4'],ids=[],lobby=[],me=0,nLocal=2,saved=false,joinTimer=null;
-const keys={},dashQ=[false,false,false,false],net=[{ax:0,ay:0},{ax:0,ay:0},{ax:0,ay:0},{ax:0,ay:0}],fallT=[0,0,0,0],ptrs=new Map();
+const keys={},dashQ=[false,false,false,false],net=[{ax:0,ay:0},{ax:0,ay:0},{ax:0,ay:0},{ax:0,ay:0}],fallT=[0,0,0,0];
 const say=t=>{$('msg').textContent=t||'';};
 const views=['menu','lobby','lb','over'];
 function view(v){views.forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));$('ov').classList.remove('hide');}
@@ -243,7 +255,7 @@ $('b-create').disabled=$('b-join').disabled=$('b-lb').disabled=!sb;
 function leave(){
   clearTimeout(joinTimer);
   if(ch&&sb)sb.removeChannel(ch);
-  ch=null;mode='menu';S=V=T=null;ids=[];lobby=[];saved=false;ptrs.clear();dashQ.fill(false);view('menu');
+  ch=null;mode='menu';S=V=T=null;ids=[];lobby=[];saved=false;padV[0]={ax:0,ay:0};padV[1]={ax:0,ay:0};dashQ.fill(false);view('menu');
 }
 function showOver(s){
   mode='over';
@@ -367,33 +379,50 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 
-function ptrPos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*C.W,y:(e.clientY-r.top)/r.height*C.H,k:C.W/r.width};}
-cv.addEventListener('pointerdown',e=>{const q=ptrPos(e);ptrs.set(e.pointerId,{sx:e.clientX,sy:e.clientY,x:e.clientX,y:e.clientY,cx:q.x,cy:q.y,k:q.k,zone:q.x<C.W/2?0:1});try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
-cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(p){p.x=e.clientX;p.y=e.clientY;}});
-for(const t of['pointerup','pointercancel'])cv.addEventListener(t,e=>ptrs.delete(e.pointerId));
+//<PAD>
+const padV=[{ax:0,ay:0},{ax:0,ay:0}];
+function setupPad(i){
+  const el=$('pad'+i),kn=el.firstElementChild;let pid=null;
+  const upd=e=>{
+    const r=el.getBoundingClientRect(),R=(r.width-kn.offsetWidth)/2||38;
+    const dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+    padV[i]=joyDir(dx,dy,R);
+    const l=Math.hypot(dx,dy)||1,m=Math.min(l,R);
+    kn.style.transform='translate('+dx/l*m+'px,'+dy/l*m+'px)';
+  };
+  el.addEventListener('pointerdown',e=>{pid=e.pointerId;try{el.setPointerCapture(pid);}catch(_){}upd(e);e.preventDefault();});
+  el.addEventListener('pointermove',e=>{if(e.pointerId===pid)upd(e);});
+  const end=e=>{if(e.pointerId!==pid)return;pid=null;padV[i]={ax:0,ay:0};kn.style.transform='';};
+  for(const t of['pointerup','pointercancel','lostpointercapture'])el.addEventListener(t,end);
+}
+setupPad(0);setupPad(1);
+//</PAD>
 for(const [id,i] of [['db0',0],['db1',1]])$(id).addEventListener('pointerdown',e=>{
   dashQ[mode==='local'?i:(mode==='host'?0:me)]=true;e.preventDefault();});
 let btnKey='';
 function updateBtns(){
   const k=!coarse?'':(mode==='local'&&nLocal===2?'2':(mode==='host'||mode==='guest')?'1':'');
-  if(k===btnKey)return;btnKey=k;
-  $('db0').classList.toggle('hide',k!=='2');$('db1').classList.toggle('hide',k==='');
-  $('db0').textContent='Dash P1';$('db1').textContent=k==='2'?'Dash P2':'Dash';
+  const key=k+(mode==='guest'?me:0);
+  if(key===btnKey)return;btnKey=key;
+  const c0=COL[mode==='guest'?me:0];
+  $('ctl').classList.toggle('hide',k==='');
+  $('pad0').classList.toggle('hide',k==='');$('db1').classList.toggle('hide',k==='');
+  $('db0').classList.toggle('hide',k!=='2');$('pad1').classList.toggle('hide',k!=='2');
+  $('db1').textContent=k==='2'?'Dash P2':'Dash';
+  const a=k==='2'?COL[0]:c0;
+  $('pad0').style.borderColor=a;$('pad0').firstElementChild.style.background=a;$('db0').style.background=COL[0];
+  $('pad1').style.borderColor=COL[1];$('pad1').firstElementChild.style.background=COL[1];$('db1').style.background=k==='2'?COL[1]:c0;
 }
 
 const keyVec=km=>({ax:(keys[km.r]?1:0)-(keys[km.l]?1:0),ay:(keys[km.d]?1:0)-(keys[km.u]?1:0)});
-function touchFor(slot){
-  for(const p of ptrs.values()){if(slot>=0&&p.zone!==slot)continue;return joyDir(p.x-p.sx,p.y-p.sy,50);}
-  return{ax:0,ay:0};
-}
 function selfVec(){
   const a=keyVec(KM[0]),b=keyVec(KM[1]);let ax=a.ax||b.ax,ay=a.ay||b.ay;
-  if(!ax&&!ay){const t=touchFor(-1);ax=t.ax;ay=t.ay;}
+  if(!ax&&!ay){ax=padV[0].ax;ay=padV[0].ay;}
   return{ax,ay};
 }
 function gatherInputs(){
   if(mode==='local')return Array.from({length:nLocal},(_,i)=>{
-    let v=keyVec(KM[i]);if(!v.ax&&!v.ay&&nLocal===2)v=touchFor(i);
+    let v=keyVec(KM[i]);if(!v.ax&&!v.ay&&nLocal===2)v=padV[i];
     return{ax:v.ax,ay:v.ay,d:dashQ[i]?1:0};});
   const v=selfVec(),inp=[{ax:v.ax,ay:v.ay,d:dashQ[0]?1:0}];
   for(let i=1;i<S.players.length;i++)inp.push({ax:net[i].ax,ay:net[i].ay,d:dashQ[i]?1:0});
@@ -443,11 +472,6 @@ function draw(s,dt){
   ctx.fillStyle='#eef4fa';ctx.font='bold 34px '+FONT;
   if(s.phase==='wait')ctx.fillText(Math.max(1,Math.ceil(s.wait)),C.CX,C.CY+12);
   if(s.phase==='roundover'&&s.rw>=0){ctx.fillStyle=COL[s.rw];ctx.fillText(nm[s.rw]+' menang ronde!',C.CX,C.CY+12);}
-  for(const p of ptrs.values()){
-    const dx=p.x-p.sx,dy=p.y-p.sy,l=Math.hypot(dx,dy)||1,m=Math.min(l,50)*p.k;
-    ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.cx,p.cy,50*p.k,0,7);ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(p.cx+dx/l*m,p.cy+dy/l*m,16*p.k,0,7);ctx.fill();
-  }
 }
 
 let last=performance.now(),lastSend=0,lastIn=0,lastKey='';
