@@ -6,7 +6,8 @@
 <title>Pong Hard Mode</title>
 <style>
 :root{--bg:#0e2238;--court:#0a1a2c;--line:#3b587a;--p1:#ffb703;--p2:#8ecae6;--fg:#eef4fa;--dim:#8fa6bf;--card:#16304c}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 body{margin:0;touch-action:manipulation;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;min-height:100vh;background:var(--bg);color:var(--fg);font-family:"Trebuchet MS",Verdana,sans-serif;display:flex;align-items:center;justify-content:center}
 #wrap{position:relative;width:min(96vw,800px)}
 canvas{touch-action:none;width:100%;display:block;background:var(--court);border:2px solid var(--line);border-radius:6px;aspect-ratio:8/5}
@@ -217,6 +218,13 @@ function toggleFs(){
   Promise.resolve(r).then(()=>{try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>setFs(true));
 }
 //</FS>
+//<NOSEL>
+for(const t of['selectstart','dragstart','contextmenu'])document.addEventListener(t,e=>{
+  const el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
+  if(el&&el.closest&&el.closest('input,textarea'))return;
+  e.preventDefault();
+});
+//</NOSEL>
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
