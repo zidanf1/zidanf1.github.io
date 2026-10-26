@@ -31,12 +31,24 @@ ol{margin:0;padding-left:22px;font-size:14px;line-height:1.6}
 #tools{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:6px}
 #tools button{padding:4px 9px;font-size:12px;opacity:.85}
 #wrap.pfs{position:fixed;inset:0;z-index:50;width:auto;margin:0!important;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.pfs #stage{width:min(100%,160vh);width:min(100%,160dvh)}
+.pfs #stage{width:min(100%,156vh);width:min(100%,156dvh)}
 .pfs canvas{height:auto;border-radius:0;border:0}
-.pfs #ctl{position:absolute;left:0;right:0;bottom:0;padding:0 calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));pointer-events:none}
-.pfs #ctl .pb{pointer-events:auto}
 .pfs #ov{border-radius:0}.pfs #rot{display:none}
 .pfs #tools{top:calc(6px + env(safe-area-inset-top,0px));right:calc(6px + env(safe-area-inset-right,0px))}
+.ghost{visibility:hidden;pointer-events:none}
+@media (orientation:portrait){
+ .pfs{flex-direction:column}
+ .pfs #stage{width:min(100%,calc((100vh - 190px)*1.6));width:min(100%,calc((100dvh - 190px)*1.6))}
+ .pfs #ctl{width:100%;padding:12px calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px))}
+}
+@media (orientation:landscape){
+ body.touch #wrap,body.touch #wrap.pfs{position:fixed;inset:0;width:auto;margin:0!important;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:var(--bg)}
+ body.touch #ctl{display:contents}
+ body.touch #g0{order:0}body.touch #g1{order:2;margin-left:0}
+ body.touch #stage{order:1;flex:none;width:min(calc(100vw - 192px - max(8px,env(safe-area-inset-left,0px)) - max(8px,env(safe-area-inset-right,0px))),156vh);width:min(calc(100dvw - 192px - max(8px,env(safe-area-inset-left,0px)) - max(8px,env(safe-area-inset-right,0px))),156dvh)}
+ body.touch .pb{width:88px;height:min(38vh,150px);height:min(38dvh,150px)}
+ body.touch #rot{display:none}
+}
 .hide{display:none!important}
 #rot{display:none;position:absolute;left:0;right:0;bottom:-34px;text-align:center;color:var(--dim);font-size:13px}
 @media (orientation:portrait) and (max-width:700px){#rot{display:block}#wrap{margin-bottom:34px}}
@@ -212,6 +224,7 @@ const myId=Math.random().toString(36).slice(2,10);
 let mode='menu',S=null,V=null,T=null,ch=null,room='',n1='Pemain 1',n2='Pemain 2',gid=null,in2=0,saved=false,joinTimer=null;
 const keys={};let pp=null;const bt=[{u:false,d:false},{u:false,d:false}];
 const coarse=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||location.search.includes('touch');
+if(coarse)document.body.classList.add('touch');
 const say=t=>{$('msg').textContent=t||'';};
 const views=['menu','wait','lb','over'];
 function view(v){views.forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));$('ov').classList.remove('hide');}
@@ -319,8 +332,8 @@ function updateBtns(){
   const k=!coarse?'':(mode==='local'?'2':mode==='host'?'h':mode==='guest'?'g':'');
   if(k===btnKey)return;btnKey=k;
   $('ctl').classList.toggle('hide',k==='');
-  $('g0').classList.toggle('hide',!(k==='2'||k==='h'));
-  $('g1').classList.toggle('hide',!(k==='2'||k==='g'));
+  $('g0').classList.toggle('ghost',!(k==='2'||k==='h'));
+  $('g1').classList.toggle('ghost',!(k==='2'||k==='g'));
 }
 const dWS=()=>(keys.KeyS?1:0)-(keys.KeyW?1:0), dAR=()=>(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
 
