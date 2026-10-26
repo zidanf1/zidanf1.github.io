@@ -103,7 +103,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_dZKspUNyywESJAcHdEQufQ_3ZxnAe5w'; // k
 const CFG={W:800,H:500,PW:12,PX:24,R:8,H0:110,HMIN:44,SHRINK:6,V0:380,VMAX:920,ACC:1.07,PSPD:440,PACC:6000,WIN:7,MAXANG:Math.PI/3};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function newState(){return{bx:CFG.W/2,by:CFG.H/2,vx:0,vy:0,y1:CFG.H/2,y2:CFG.H/2,v1:0,v2:0,s1:0,s2:0,hits:0,wait:1.5,serveDir:1,over:false,winner:0};}
-function padH(s){return Math.max(CFG.HMIN,CFG.H0-CFG.SHRINK*(s.s1+s.s2));}
+function padH(s,side){return Math.max(CFG.HMIN,CFG.H0-CFG.SHRINK*(side===1?s.s2:s.s1));}
 function serve(s){const a=Math.random()*0.8-0.4;s.vx=Math.cos(a)*CFG.V0*s.serveDir;s.vy=Math.sin(a)*CFG.V0;s.hits=0;}
 function hit(s,dir,py,h){
   const rel=clamp((s.by-py)/(h/2),-1,1),sp=Math.min(CFG.VMAX,Math.hypot(s.vx,s.vy)*CFG.ACC),a=rel*CFG.MAXANG;
@@ -123,20 +123,20 @@ function paddleStep(y,v,dir,dt,h){
   return[y,v];
 }
 function ballStep(s,dt){
-  const h=padH(s);
+  const h1=padH(s,1),h2=padH(s,2);
   s.bx+=s.vx*dt;s.by+=s.vy*dt;
   if(s.by<CFG.R){s.by=CFG.R;s.vy=Math.abs(s.vy);}
   if(s.by>CFG.H-CFG.R){s.by=CFG.H-CFG.R;s.vy=-Math.abs(s.vy);}
-  const m=h/2+CFG.R*0.5;
-  if(s.vx<0&&s.bx-CFG.R<=CFG.PX+CFG.PW&&s.bx+CFG.R>=CFG.PX&&Math.abs(s.by-s.y1)<=m)hit(s,1,s.y1,h);
-  else if(s.vx>0&&s.bx+CFG.R>=CFG.W-CFG.PX-CFG.PW&&s.bx-CFG.R<=CFG.W-CFG.PX&&Math.abs(s.by-s.y2)<=m)hit(s,-1,s.y2,h);
+  const m1=h1/2+CFG.R*0.5,m2=h2/2+CFG.R*0.5;
+  if(s.vx<0&&s.bx-CFG.R<=CFG.PX+CFG.PW&&s.bx+CFG.R>=CFG.PX&&Math.abs(s.by-s.y1)<=m1)hit(s,1,s.y1,h1);
+  else if(s.vx>0&&s.bx+CFG.R>=CFG.W-CFG.PX-CFG.PW&&s.bx-CFG.R<=CFG.W-CFG.PX&&Math.abs(s.by-s.y2)<=m2)hit(s,-1,s.y2,h2);
   if(s.bx<-CFG.R)point(s,2);else if(s.bx>CFG.W+CFG.R)point(s,1);
 }
 function step(s,dt,in1,in2){
   if(s.over)return;
-  const h=padH(s);
-  let r=paddleStep(s.y1,s.v1,in1,dt,h);s.y1=r[0];s.v1=r[1];
-  r=paddleStep(s.y2,s.v2,in2,dt,h);s.y2=r[0];s.v2=r[1];
+  const h1=padH(s,1),h2=padH(s,2);
+  let r=paddleStep(s.y1,s.v1,in1,dt,h1);s.y1=r[0];s.v1=r[1];
+  r=paddleStep(s.y2,s.v2,in2,dt,h2);s.y2=r[0];s.v2=r[1];
   if(s.wait>0){s.wait-=dt;if(s.wait<=0){s.wait=0;serve(s);}return;}
   ballStep(s,dt);
 }
@@ -166,9 +166,9 @@ function reconcile(p,target,dt){
   else if(Math.abs(p.v)<1)p.y+=err*Math.min(1,dt*6);
 }
 function guestStep(V,T,pp,dt,age,dir){
-  const h=padH(T),a=clamp(age,0,0.06);
-  const r=paddleStep(pp.y,pp.v,dir,dt,h);pp.y=r[0];pp.v=r[1];reconcile(pp,T.y2,dt);
-  const t1=clamp(T.y1+(T.v1||0)*a,h/2,CFG.H-h/2);
+  const h1=padH(T,1),h2=padH(T,2),a=clamp(age,0,0.06);
+  const r=paddleStep(pp.y,pp.v,dir,dt,h2);pp.y=r[0];pp.v=r[1];reconcile(pp,T.y2,dt);
+  const t1=clamp(T.y1+(T.v1||0)*a,h1/2,CFG.H-h1/2);
   V.y1=Math.abs(t1-V.y1)>150?t1:V.y1+(t1-V.y1)*Math.min(1,dt*30);
   V.y2=pp.y;
   const e=extrapolate(T,V.y1,V.y2,age),k=Math.min(1,dt*25);
@@ -227,7 +227,7 @@ for(const t of['selectstart','dragstart','contextmenu'])document.addEventListene
 //</NOSEL>
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
-const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{realtime:{params:{eventsPerSecond:40}}}):null;
 const myId=Math.random().toString(36).slice(2,10);
 let mode='menu',S=null,V=null,T=null,ch=null,room='',n1='Pemain 1',n2='Pemain 2',gid=null,in2=0,saved=false,joinTimer=null;
 const keys={};let pp=null;const bt=[{u:false,d:false},{u:false,d:false}];
@@ -349,9 +349,9 @@ function draw(s){
   ctx.clearRect(0,0,CFG.W,CFG.H);
   ctx.strokeStyle='#3b587a';ctx.lineWidth=3;ctx.setLineDash([12,14]);
   ctx.beginPath();ctx.moveTo(CFG.W/2,0);ctx.lineTo(CFG.W/2,CFG.H);ctx.stroke();ctx.setLineDash([]);
-  const h=padH(s);
-  ctx.fillStyle='#ffb703';ctx.fillRect(CFG.PX,s.y1-h/2,CFG.PW,h);
-  ctx.fillStyle='#8ecae6';ctx.fillRect(CFG.W-CFG.PX-CFG.PW,s.y2-h/2,CFG.PW,h);
+  const h1=padH(s,1),h2=padH(s,2);
+  ctx.fillStyle='#ffb703';ctx.fillRect(CFG.PX,s.y1-h1/2,CFG.PW,h1);
+  ctx.fillStyle='#8ecae6';ctx.fillRect(CFG.W-CFG.PX-CFG.PW,s.y2-h2/2,CFG.PW,h2);
   ctx.fillStyle='#eef4fa';ctx.beginPath();ctx.arc(s.bx,s.by,CFG.R,0,7);ctx.fill();
   ctx.font='bold 56px "Trebuchet MS",sans-serif';ctx.textAlign='center';
   ctx.fillStyle='#ffb703';ctx.fillText(s.s1,CFG.W/2-70,64);
@@ -378,7 +378,7 @@ function loop(now){
   }else if(mode==='guest'&&V&&T){
     const d=dWS()||dAR()||bDir(1);
     guestStep(V,T,pp,dt,(now-T.at)/1000,d);
-    if(d!==lastD||now-lastIn>50){lastD=d;lastIn=now;ch.send({type:'broadcast',event:'input',payload:{id:myId,d}});}
+    if(d!==lastD||now-lastIn>100){lastD=d;lastIn=now;ch.send({type:'broadcast',event:'input',payload:{id:myId,d}});}
     draw(V);
     if(V.over)showOver(V,n1,n2);
   }else if(mode==='over'&&(S||V))draw(S||V);
