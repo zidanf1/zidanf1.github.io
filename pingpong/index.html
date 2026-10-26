@@ -24,10 +24,17 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--p2);outline-off
 #msg{color:var(--dim);font-size:13px;min-height:1.3em;margin:0}
 ol{margin:0;padding-left:22px;font-size:14px;line-height:1.6}
 .code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--p1);text-align:center}
+#stage{position:relative}
+#ctl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 4px 0}
+.grp{display:flex;gap:12px}#g1{margin-left:auto}
+.pb{width:104px;height:84px;font-size:30px;line-height:1;touch-action:none;flex:none;border-radius:14px}
 #tools{position:absolute;top:6px;right:6px;z-index:3;display:flex;gap:6px}
 #tools button{padding:4px 9px;font-size:12px;opacity:.85}
 #wrap.pfs{position:fixed;inset:0;z-index:50;width:auto;margin:0!important;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.pfs canvas{width:min(100%,160vh);width:min(100%,160dvh);height:auto;border-radius:0;border:0}
+.pfs #stage{width:min(100%,160vh);width:min(100%,160dvh)}
+.pfs canvas{height:auto;border-radius:0;border:0}
+.pfs #ctl{position:absolute;left:0;right:0;bottom:0;padding:0 calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));pointer-events:none}
+.pfs #ctl .pb{pointer-events:auto}
 .pfs #ov{border-radius:0}.pfs #rot{display:none}
 .pfs #tools{top:calc(6px + env(safe-area-inset-top,0px));right:calc(6px + env(safe-area-inset-right,0px))}
 .hide{display:none!important}
@@ -38,6 +45,7 @@ small{color:var(--dim)}
 </head>
 <body>
 <div id="wrap">
+<div id="stage">
 <canvas id="cv" width="800" height="500"></canvas>
 <div id="ov"><div class="card">
  <div id="v-menu" style="display:contents">
@@ -47,7 +55,7 @@ small{color:var(--dim)}
   <button id="b-create" class="s">Buat room online</button>
   <div class="row"><input id="code" maxlength="5" placeholder="Kode room" aria-label="Kode room"><button id="b-join" class="s">Gabung</button></div>
   <button id="b-lb" class="s">Papan skor</button>
-  <small>Keyboard: lokal kiri W/S, kanan ↑/↓; online W/S atau ↑/↓. HP: geser jari (lokal: setengah layar kiri dan kanan; online: di mana saja). Menang di 7 poin. Bola makin cepat, paddle makin kecil.</small>
+  <small>Keyboard: lokal kiri W/S, kanan ↑/↓; online W/S atau ↑/↓. HP: tombol ▲ ▼ di bawah layar (lokal: kiri untuk pemain kiri, kanan untuk pemain kanan). Menang di 7 poin. Bola makin cepat, paddle makin kecil.</small>
  </div>
  <div id="v-wait" class="hide" style="display:contents">
   <h2>Menunggu lawan</h2><div class="code" id="roomcode">-----</div>
@@ -63,6 +71,11 @@ small{color:var(--dim)}
  <p id="msg"></p>
 </div></div>
 <div id="tools"><button id="fs" class="s">Layar penuh</button><button id="snd" class="s" aria-label="Suara">Suara: nyala</button></div>
+</div>
+<div id="ctl" class="hide">
+ <div class="grp" id="g0"><button id="u0" class="pb" aria-label="Paddle kiri naik">▲</button><button id="d0" class="pb" aria-label="Paddle kiri turun">▼</button></div>
+ <div class="grp" id="g1"><button id="u1" class="pb s" aria-label="Paddle kanan naik">▲</button><button id="d1" class="pb s" aria-label="Paddle kanan turun">▼</button></div>
+</div>
 <div id="rot">Putar HP ke samping agar layar lebih luas.</div>
 </div>
 
@@ -74,9 +87,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_dZKspUNyywESJAcHdEQufQ_3ZxnAe5w'; // k
 // =======================
 
 //<LOGIC>
-const CFG={W:800,H:500,PW:12,PX:24,R:8,H0:110,HMIN:44,SHRINK:6,V0:380,VMAX:920,ACC:1.07,PSPD:440,WIN:7,MAXANG:Math.PI/3};
+const CFG={W:800,H:500,PW:12,PX:24,R:8,H0:110,HMIN:44,SHRINK:6,V0:380,VMAX:920,ACC:1.07,PSPD:440,PACC:6000,WIN:7,MAXANG:Math.PI/3};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function newState(){return{bx:CFG.W/2,by:CFG.H/2,vx:0,vy:0,y1:CFG.H/2,y2:CFG.H/2,s1:0,s2:0,hits:0,wait:1.5,serveDir:1,over:false,winner:0};}
+function newState(){return{bx:CFG.W/2,by:CFG.H/2,vx:0,vy:0,y1:CFG.H/2,y2:CFG.H/2,v1:0,v2:0,s1:0,s2:0,hits:0,wait:1.5,serveDir:1,over:false,winner:0};}
 function padH(s){return Math.max(CFG.HMIN,CFG.H0-CFG.SHRINK*(s.s1+s.s2));}
 function serve(s){const a=Math.random()*0.8-0.4;s.vx=Math.cos(a)*CFG.V0*s.serveDir;s.vy=Math.sin(a)*CFG.V0;s.hits=0;}
 function hit(s,dir,py,h){
@@ -89,12 +102,15 @@ function point(s,who){
   s.bx=CFG.W/2;s.by=CFG.H/2;s.vx=0;s.vy=0;s.wait=1.0;s.serveDir=who===1?1:-1;
   if(s.s1>=CFG.WIN||s.s2>=CFG.WIN){s.over=true;s.winner=who;}
 }
-function step(s,dt,in1,in2){
-  if(s.over)return;
+function paddleStep(y,v,dir,dt,h){
+  const a=CFG.PACC*dt;
+  v+=clamp(dir*CFG.PSPD-v,-a,a);y+=v*dt;
+  const lo=h/2,hi=CFG.H-h/2;
+  if(y<lo){y=lo;if(v<0)v=0;}else if(y>hi){y=hi;if(v>0)v=0;}
+  return[y,v];
+}
+function ballStep(s,dt){
   const h=padH(s);
-  s.y1=clamp(s.y1+in1*CFG.PSPD*dt,h/2,CFG.H-h/2);
-  s.y2=clamp(s.y2+in2*CFG.PSPD*dt,h/2,CFG.H-h/2);
-  if(s.wait>0){s.wait-=dt;if(s.wait<=0){s.wait=0;serve(s);}return;}
   s.bx+=s.vx*dt;s.by+=s.vy*dt;
   if(s.by<CFG.R){s.by=CFG.R;s.vy=Math.abs(s.vy);}
   if(s.by>CFG.H-CFG.R){s.by=CFG.H-CFG.R;s.vy=-Math.abs(s.vy);}
@@ -103,9 +119,13 @@ function step(s,dt,in1,in2){
   else if(s.vx>0&&s.bx+CFG.R>=CFG.W-CFG.PX-CFG.PW&&s.bx-CFG.R<=CFG.W-CFG.PX&&Math.abs(s.by-s.y2)<=m)hit(s,-1,s.y2,h);
   if(s.bx<-CFG.R)point(s,2);else if(s.bx>CFG.W+CFG.R)point(s,1);
 }
-function touchDir(pts,side,y){
-  const p=pts.find(q=>side===0||(side===1?q.x<CFG.W/2:q.x>=CFG.W/2));
-  if(!p)return 0;const d=p.y-y;return Math.abs(d)<8?0:Math.sign(d);
+function step(s,dt,in1,in2){
+  if(s.over)return;
+  const h=padH(s);
+  let r=paddleStep(s.y1,s.v1,in1,dt,h);s.y1=r[0];s.v1=r[1];
+  r=paddleStep(s.y2,s.v2,in2,dt,h);s.y2=r[0];s.v2=r[1];
+  if(s.wait>0){s.wait-=dt;if(s.wait<=0){s.wait=0;serve(s);}return;}
+  ballStep(s,dt);
 }
 function detect(a,b){
   const e=[];if(!a||!b)return e;
@@ -115,10 +135,33 @@ function detect(a,b){
   if(!a.over&&b.over)e.push({t:'win'});
   return e;
 }
-function pack(s){const r=Math.round;return{bx:r(s.bx),by:r(s.by),vx:r(s.vx),vy:r(s.vy),y1:r(s.y1),y2:r(s.y2),s1:s.s1,s2:s.s2,wait:Math.round(s.wait*10)/10,over:s.over,winner:s.winner};}
-function smooth(V,T,dt){
-  for(const k of['bx','by','y1','y2']){const d=T[k]-V[k];V[k]=Math.abs(d)>120?T[k]:V[k]+d*Math.min(1,dt*25);}
-  for(const k of['vx','vy','s1','s2','wait','over','winner'])V[k]=T[k];
+function pack(s){const r=Math.round;return{bx:r(s.bx),by:r(s.by),vx:r(s.vx),vy:r(s.vy),y1:r(s.y1),y2:r(s.y2),v1:r(s.v1),v2:r(s.v2),s1:s.s1,s2:s.s2,wait:Math.round(s.wait*10)/10,over:s.over,winner:s.winner};}
+// Prediksi bola dari paket terakhir host (termasuk pantulan dinding dan paddle), maks 60 ms.
+function extrapolate(T,y1,y2,age){
+  if(T.wait>0||T.over)return{bx:T.bx,by:T.by};
+  const E={bx:T.bx,by:T.by,vx:T.vx,vy:T.vy,y1,y2,s1:T.s1,s2:T.s2,hits:0,wait:0,serveDir:1,over:false,winner:0};
+  const a=clamp(age,0,0.06),n=Math.max(1,Math.ceil(a/(1/240)));
+  for(let i=0;i<n;i++)ballStep(E,a/n);
+  if(E.s1!==T.s1||E.s2!==T.s2)return{bx:T.bx,by:T.by};
+  return{bx:E.bx,by:E.by};
+}
+// Paddle sendiri dijalankan lokal; posisi host hanya menarik pelan-pelan (tanpa loncatan).
+function reconcile(p,target,dt){
+  const err=target-p.y,tol=20+Math.abs(p.v)*0.2;
+  if(Math.abs(err)>140+Math.abs(p.v)*0.5){p.y=target;p.v=0;return;}
+  if(Math.abs(err)>tol)p.y+=(err-Math.sign(err)*tol)*Math.min(1,dt*6);
+  else if(Math.abs(p.v)<1)p.y+=err*Math.min(1,dt*6);
+}
+function guestStep(V,T,pp,dt,age,dir){
+  const h=padH(T),a=clamp(age,0,0.06);
+  const r=paddleStep(pp.y,pp.v,dir,dt,h);pp.y=r[0];pp.v=r[1];reconcile(pp,T.y2,dt);
+  const t1=clamp(T.y1+(T.v1||0)*a,h/2,CFG.H-h/2);
+  V.y1=Math.abs(t1-V.y1)>150?t1:V.y1+(t1-V.y1)*Math.min(1,dt*30);
+  V.y2=pp.y;
+  const e=extrapolate(T,V.y1,V.y2,age),k=Math.min(1,dt*25);
+  V.bx=Math.abs(e.bx-V.bx)>100?e.bx:V.bx+(e.bx-V.bx)*k;
+  V.by=Math.abs(e.by-V.by)>100?e.by:V.by+(e.by-V.by)*k;
+  for(const q of['vx','vy','s1','s2','wait','over','winner'])V[q]=T[q];
 }
 //</LOGIC>
 
@@ -167,7 +210,8 @@ const cv=$('cv'),ctx=cv.getContext('2d');
 const sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 const myId=Math.random().toString(36).slice(2,10);
 let mode='menu',S=null,V=null,T=null,ch=null,room='',n1='Pemain 1',n2='Pemain 2',gid=null,in2=0,saved=false,joinTimer=null;
-const keys={};
+const keys={};let pp=null;const bt=[{u:false,d:false},{u:false,d:false}];
+const coarse=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||location.search.includes('touch');
 const say=t=>{$('msg').textContent=t||'';};
 const views=['menu','wait','lb','over'];
 function view(v){views.forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));$('ov').classList.remove('hide');}
@@ -180,7 +224,7 @@ $('b-create').disabled=$('b-join').disabled=$('b-lb').disabled=!sb;
 function leave(){
   clearTimeout(joinTimer);
   if(ch&&sb){sb.removeChannel(ch);}
-  ch=null;mode='menu';S=V=T=null;gid=null;in2=0;saved=false;view('menu');
+  ch=null;mode='menu';S=V=T=pp=null;gid=null;in2=0;saved=false;bt.forEach(b=>{b.u=false;b.d=false;});view('menu');
 }
 function showOver(s,a,b){
   mode='over';
@@ -197,7 +241,8 @@ function openChannel(code,role){
   ch.on('broadcast',{event:'state'},({payload})=>{
     if(role!=='guest'||payload.g!==myId)return;
     clearTimeout(joinTimer);
-    if(mode!=='guest'&&mode!=='over'){mode='guest';n1=payload.n1;n2=payload.n2;V={...payload};hideOv();say('');}
+    payload.at=performance.now();
+    if(mode!=='guest'&&mode!=='over'){mode='guest';n1=payload.n1;n2=payload.n2;V={...payload};pp={y:payload.y2,v:0};hideOv();say('');}
     sfx(detect(T,payload));T=payload;n1=payload.n1;n2=payload.n2;
   });
   ch.on('broadcast',{event:'input'},({payload})=>{if(role==='host'&&payload.id===gid)in2=clamp(payload.d|0,-1,1);});
@@ -258,11 +303,25 @@ $('snd').onclick=toggleSnd;
 $('fs').onclick=toggleFs;
 for(const t of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(t,()=>setFs(!!fsActive()));
 for(const t of['pointerdown','keydown','click'])addEventListener(t,unlock);
-const ptrs=new Map(),pts=()=>[...ptrs.values()];
-function ptrPos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*CFG.W,y:(e.clientY-r.top)/r.height*CFG.H};}
-cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,ptrPos(e));try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
-cv.addEventListener('pointermove',e=>{if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,ptrPos(e));});
-for(const t of['pointerup','pointercancel'])cv.addEventListener(t,e=>ptrs.delete(e.pointerId));
+//<BTN>
+function bindBtn(id,i,key){
+  const el=$(id);let pid=null;
+  const off=e=>{if(pid!==null&&e.pointerId!==pid)return;pid=null;bt[i][key]=false;};
+  el.addEventListener('pointerdown',e=>{pid=e.pointerId;try{el.setPointerCapture(pid);}catch(_){}bt[i][key]=true;e.preventDefault();});
+  for(const t of['pointerup','pointercancel','lostpointercapture'])el.addEventListener(t,off);
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+bindBtn('u0',0,'u');bindBtn('d0',0,'d');bindBtn('u1',1,'u');bindBtn('d1',1,'d');
+const bDir=i=>(bt[i].d?1:0)-(bt[i].u?1:0);
+//</BTN>
+let btnKey='';
+function updateBtns(){
+  const k=!coarse?'':(mode==='local'?'2':mode==='host'?'h':mode==='guest'?'g':'');
+  if(k===btnKey)return;btnKey=k;
+  $('ctl').classList.toggle('hide',k==='');
+  $('g0').classList.toggle('hide',!(k==='2'||k==='h'));
+  $('g1').classList.toggle('hide',!(k==='2'||k==='g'));
+}
 const dWS=()=>(keys.KeyS?1:0)-(keys.KeyW?1:0), dAR=()=>(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
 
 function draw(s){
@@ -285,8 +344,9 @@ function draw(s){
 let last=performance.now(),lastSend=0,lastIn=0,lastD=0;
 function loop(now){
   const dt=Math.min(0.05,(now-last)/1000);last=now;
+  updateBtns();
   if(mode==='local'||mode==='host'){
-    const a=mode==='local'?(dWS()||touchDir(pts(),1,S.y1)):(dWS()||dAR()||touchDir(pts(),0,S.y1)),b=mode==='local'?(dAR()||touchDir(pts(),2,S.y2)):in2;
+    const a=mode==='local'?(dWS()||bDir(0)):(dWS()||dAR()||bDir(0)),b=mode==='local'?(dAR()||bDir(1)):in2;
     const n=Math.ceil(dt/(1/120))||1;
     const prev={vx:S.vx,vy:S.vy,s1:S.s1,s2:S.s2,over:S.over};
     for(let i=0;i<n;i++)step(S,dt/n,a,b);
@@ -295,8 +355,8 @@ function loop(now){
     if(S.over){if(mode==='host'){ch.send({type:'broadcast',event:'state',payload:{...pack(S),g:gid,n1,n2}});finishHost();}else showOver(S,n1,n2);}
     draw(S);
   }else if(mode==='guest'&&V&&T){
-    smooth(V,T,dt);
-    const d=dWS()||dAR()||touchDir(pts(),0,V.y2);
+    const d=dWS()||dAR()||bDir(1);
+    guestStep(V,T,pp,dt,(now-T.at)/1000,d);
     if(d!==lastD||now-lastIn>50){lastD=d;lastIn=now;ch.send({type:'broadcast',event:'input',payload:{id:myId,d}});}
     draw(V);
     if(V.over)showOver(V,n1,n2);
