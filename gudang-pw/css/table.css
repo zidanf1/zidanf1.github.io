@@ -41,3 +41,10 @@ tr.garis td { border-top: 3px solid var(--dark); }     /* garis pemisah kelompok
 #tabelLot th, #tabelLot td { padding: 8px 4px; }
 #tabelLot td:first-child { overflow-wrap: anywhere; }
 #tabelLot td:last-child { width: 1%; white-space: nowrap; text-align: right; }
+
+/* Style di bawah Model (kolom Model di Stok Rak) */
+#tabelRak .sub { font-size: 11px; line-height: 1.2; color: var(--muted); }
+#tabelRak tbody td { padding-top: 6px; padding-bottom: 6px; }
+
+/* Lotcode di daftar Form Lotcode bisa diketuk untuk diubah */
+#tabelLot td.bisa-ketuk { cursor: pointer; }

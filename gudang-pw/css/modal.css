@@ -30,6 +30,19 @@
   text-align: left; cursor: pointer;
 }
 .item b { overflow-wrap: anywhere; }
+.item-info { flex-shrink: 0; text-align: right; font-size: 12px; line-height: 1.4; }
+
+/* Judul "Lotcode" + tombol "+ Lotcode baru" */
+.baris-label { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.baris-label .btn { padding: 3px 10px; }
+
+/* Panel lotcode baru di dalam popup */
+.panel-baru {
+  flex-direction: column; gap: 8px;
+  margin-top: 10px; padding: 10px;
+  border: 1px solid var(--accent); border-radius: 6px;
+}
+.panel-baru .row { justify-content: flex-end; }
 .item.aktif { background: var(--strip); outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* Pesan "lotcode tidak ditemukan" */

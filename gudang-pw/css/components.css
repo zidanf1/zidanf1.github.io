@@ -10,7 +10,7 @@ input, select {
   border: 1px solid var(--line); border-radius: 6px;
 }
 input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
-#inputLot { text-transform: uppercase; }
+#inputLot, #popLot { text-transform: uppercase; }
 
 /* Label di atas input */
 .field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; font-size: 13px; color: var(--muted); }
