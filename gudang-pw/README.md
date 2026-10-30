@@ -106,7 +106,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 
 | Kunci | Isi |
 |---|---|
-| `gudang_lots` | Daftar lotcode: `[{ lot: "J07T184", qty: 5343, tipe: "GS", style: "X1", pindah: "2026-10-30T07:02:00.000Z" }]`. `tipe` = Model. `pindah` = waktu lotcode terakhir ditempatkan / berpindah lokasi (kosong = belum pernah). |
+| `gudang_lots` | Daftar lotcode: `[{ lot: "J07T184", qty: 5343, tipe: "GS", style: "X1", pindah: "2026-10-30T07:02:00.000Z" }]`. `tipe` = Model. `pindah` = waktu lokasi lotcode terakhir berubah (ditempatkan / pindah / keluar dari rak). |
 | `gudang_rows` | Daftar baris rak: `[{ loc: "A7-3", lot: "J07T184" }]` (`lot` kosong = rak kosong) |
 | `gudang_upd` | Waktu perubahan data terakhir (teks ISO) |
 | `gudang_tema` | Nama tema yang dipilih |
@@ -153,7 +153,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 - [ ] Ketuk satu baris: popup **Form Data Rak** terbuka, Simpan / Batal / Hapus berfungsi.
 - [ ] Di popup, cari lotcode yang tidak ada: muncul tombol **+ Lotcode baru**; isi Lotcode, Model, Style (boleh kosong), Qty, tekan **Simpan lotcode**: lotcode langsung terpilih dan popup tetap terbuka.
 - [ ] Ketik di kolom Model / Style: muncul saran dari data yang sudah ada.
-- [ ] Tempatkan lotcode ke IDRak lalu Simpan: di Form Lotcode muncul `Pindah tanggal jam`. Simpan tanpa mengubah lokasi: waktunya tidak berubah.
+- [ ] Tempatkan lotcode ke IDRak lalu Simpan: di Form Lotcode muncul `IDRak · baru saja`. Kosongkan baris itu: berubah jadi `Tidak di rak · baru saja`. Simpan tanpa mengubah lokasi: waktunya tidak berubah.
 - [ ] Cari di popup dan di Stok Rak memakai lotcode, model, style, qty, atau tanggal pindah.
 - [ ] Semua pilihan **Urutkan** berfungsi, kolom pencarian berfungsi.
 - [ ] Menu: Stok Rak, Form Lotcode, Tema, Screenshot, Kirim WhatsApp.
@@ -235,14 +235,21 @@ terhapus (misalnya data situs dibersihkan, atau pindah HP).
 
 ---
 
-## 11. Waktu pindah lotcode, Model, dan Style
+## 11. Status lokasi lotcode, Model, dan Style
 
-- **Waktu pindah** (`pindah`) dicatat otomatis saat popup Form Data Rak disimpan dan lotcode di baris itu
-  baru ditempatkan atau lokasinya (IDRak) berubah. Menyimpan tanpa mengubah lokasi tidak mengubah waktunya.
-  Lotcode yang belum pernah ditempatkan tampil `Pindah -`. Mengubah qty / model / style tidak mengubah waktu pindah.
+- Di Form Lotcode dan di daftar popup, tiap lotcode menampilkan **lokasinya sekarang dan sejak kapan**:
+  `A7-3 · 1 hari lalu` (ada di rak sejak 1 hari lalu) atau `Tidak di rak · 3 hari lalu`
+  (sudah tidak ada di rak sejak 3 hari lalu). Satuan: baru saja, menit, jam, hari.
+- Waktunya (`pindah`) dicatat otomatis setiap **lokasi lotcode berubah**: baru ditempatkan di IDRak, pindah IDRak,
+  atau keluar dari rak (baris dikosongkan, diganti lotcode lain, atau dihapus). Lotcode baru dihitung
+  "Tidak di rak" sejak dibuat. Mengubah qty / model / style tidak mengubah waktunya.
+  Pencatatan ada di `catatPerubahanLokasi()` (`js/data.js`), dipanggil dari `js/rack-popup.js`.
+- "Floor" dianggap sebagai lokasi (bukan "Tidak di rak"). Lotcode yang ada di beberapa baris
+  menampilkan semua lokasinya.
+- **Lotcode lama** (dari versi sebelumnya) belum punya waktu: tampil `waktu belum tercatat`
+  sampai lokasinya berubah satu kali.
 - **Model** dan **Style** adalah isian teks dengan saran otomatis (datalist). Saran berasal dari `KONFIG.TIPE`
   (hanya Model) ditambah semua nilai yang sudah dipakai di data. Jika yang diketik sama dengan saran
   (beda huruf besar/kecil saja), dipakai tulisan saran. Maksimal `KONFIG.PANJANG_ISIAN` karakter.
-- **Lotcode lama** otomatis disesuaikan: Style kosong, waktu pindah kosong. Model lama tetap dipertahankan.
 - **Form Lotcode** (menu) tetap ada untuk melihat daftar, mengubah (ketuk lotcode), dan menghapus.
-  Menambah lotcode baru sekarang cukup dari popup Form Data Rak.
+  Menambah lotcode baru cukup dari popup Form Data Rak.
