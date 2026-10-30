@@ -32,6 +32,19 @@ function formatWaktu(tanggal) {
     '  ' + dua(tanggal.getHours()) + ':' + dua(tanggal.getMinutes());
 }
 
+// Contoh hasil: "03/10/2026 14:02" (dari teks ISO). Kosong jika tidak valid.
+function formatWaktuPendek(teksIso) {
+  if (!teksIso) {
+    return '';
+  }
+  var tanggal = new Date(teksIso);
+  if (isNaN(tanggal.getTime())) {
+    return '';
+  }
+  return dua(tanggal.getDate()) + '/' + dua(tanggal.getMonth() + 1) + '/' + tanggal.getFullYear() +
+    ' ' + dua(tanggal.getHours()) + ':' + dua(tanggal.getMinutes());
+}
+
 // Nomor urut lokasi, dipakai untuk mengurutkan. "Floor" selalu paling akhir.
 function nomorLokasi(lokasi) {
   if (lokasi === KONFIG.LABEL_FLOOR) {

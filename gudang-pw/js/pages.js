@@ -27,9 +27,8 @@ function pindahHalaman(nama) {
   }
 }
 
-// Pindah halaman lewat menu. Ini membatalkan rencana "kembali ke popup".
+// Pindah halaman lewat menu
 function bukaHalamanMenu(nama) {
-  UI.tujuanKembali = null;
   pindahHalaman(nama);
 }
 

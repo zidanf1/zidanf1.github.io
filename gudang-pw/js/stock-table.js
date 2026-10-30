@@ -19,8 +19,13 @@ function kosongkanPencarian() {
 
 // Memecah teks pencarian menjadi daftar kata (huruf besar). "j05 b1" -> ['J05', 'B1']
 function ambilKataCari() {
+  return pecahKata(UI.teksCari);
+}
+
+// Memecah teks apa pun menjadi daftar kata huruf besar (dipakai juga oleh pencarian di popup)
+function pecahKata(teksBebas) {
   var kata = [];
-  var potongan = UI.teksCari.trim().toUpperCase().split(' ');
+  var potongan = teksBebas.trim().toUpperCase().split(' ');
   for (var i = 0; i < potongan.length; i++) {
     if (potongan[i] !== '') {
       kata.push(potongan[i]);
@@ -140,16 +145,20 @@ function tampilkanTabel() {
 
     // Isi kolom (baris kosong tampil "-")
     var model = '-';
+    var style = '';
     var namaLot = 'kosong';
     var qty = '-';
+    var tanggalPindah = '';
     if (lot) {
       model = lot.tipe ? lot.tipe : '-';
+      style = lot.style;
       namaLot = lot.lot;
       qty = lot.qty;
+      tanggalPindah = formatWaktuPendek(lot.pindah);
     }
 
-    // Terapkan pencarian
-    if (kataCari.length > 0 && !cocokPencarian(rak.loc + ' ' + model + ' ' + namaLot + ' ' + qty, kataCari)) {
+    // Terapkan pencarian (IDRak, model, style, lotcode, qty, dan tanggal pindah)
+    if (kataCari.length > 0 && !cocokPencarian(rak.loc + ' ' + model + ' ' + style + ' ' + namaLot + ' ' + qty + ' ' + tanggalPindah, kataCari)) {
       continue;
     }
 
@@ -168,7 +177,7 @@ function tampilkanTabel() {
 
     html += '<tr class="data ' + warna + garis + '" id="r' + i + '" onclick="bukaEdit(' + i + ')">';
     html += '<td><b>' + aman(rak.loc) + '</b></td>';
-    html += '<td>' + aman(model) + '</td>';
+    html += '<td>' + aman(model) + (style !== '' ? '<div class="sub">' + aman(style) + '</div>' : '') + '</td>';
     html += '<td>' + teksLot + '</td>';
     html += '<td>' + aman(qty) + '</td>';
     html += '</tr>';

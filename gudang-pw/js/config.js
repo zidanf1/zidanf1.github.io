@@ -11,7 +11,7 @@ var KONFIG = {
 
   // NAIKKAN angka versi ini setiap selesai memperbarui aplikasi,
   // supaya HP/browser mengambil file yang baru (lihat README.md).
-  VERSI: '2.2.1',
+  VERSI: '2.3.0',
 
   // false = service worker (mode offline) dimatikan. Dipakai oleh build.py untuk file mandiri.
   PAKAI_SERVICE_WORKER: true,
@@ -30,8 +30,12 @@ var KONFIG = {
 
   // ----- Pilihan data -----
 
-  // Daftar type / model barang (muncul di Form Lotcode)
+  // Saran awal untuk isian Model (muncul sebagai autofill di form lotcode).
+  // Model boleh diketik bebas; nilai yang pernah dipakai otomatis ikut jadi saran.
   TIPE: ['GS', 'PS', 'TD', 'MEN', 'SOCCER', 'BasketBall'],
+
+  // Batas panjang isian Model dan Style
+  PANJANG_ISIAN: 30,
 
   // Ukuran rak: huruf rak, jumlah baris, jumlah kolom.
   // Contoh hasil: A1-1 ... A10-8, B1-1 ... B10-8

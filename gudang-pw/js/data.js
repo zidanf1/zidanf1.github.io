@@ -5,7 +5,8 @@
 
 // ----- Data yang disimpan di browser -----
 var DATA = {
-  lot: [],            // daftar lotcode.  Isi: { lot: 'ABC', qty: 10, tipe: 'GS' }
+  lot: [],            // daftar lotcode.  Isi: { lot: 'ABC', qty: 10, tipe: 'GS', style: 'X1', pindah: '2026-10-30T07:00:00Z' }
+                      // tipe = Model. pindah = waktu terakhir lotcode berpindah lokasi (kosong = belum pernah)
   rak: [],            // daftar baris rak. Isi: { loc: 'A1-1', lot: 'ABC' }
   waktuUpdate: null   // waktu perubahan data terakhir (teks ISO)
 };
@@ -15,8 +16,7 @@ var UI = {
   urutKunci: KONFIG.URUT_BAWAAN.kunci,   // 'lot', 'idrak', 'model', atau 'qty'
   urutNaik: KONFIG.URUT_BAWAAN.naik,     // true = A-Z / terkecil
   teksCari: '',                          // kata di kolom pencarian
-  temaAktif: KONFIG.TEMA[KONFIG.TEMA_BAWAAN],
-  tujuanKembali: null                    // diisi saat pengguna dikirim dari popup ke Form Lotcode
+  temaAktif: KONFIG.TEMA[KONFIG.TEMA_BAWAAN]
 };
 
 // Membaca semua data dari localStorage
@@ -37,10 +37,9 @@ function rapikanData() {
   for (var i = 0; i < DATA.lot.length; i++) {
     var lot = DATA.lot[i];
     lot.lot = String(lot.lot).toUpperCase();         // lotcode selalu huruf besar
-    lot.tipe = lot.tipe || '';
-    if (lot.tipe !== '' && KONFIG.TIPE.indexOf(lot.tipe) === -1) {
-      lot.tipe = '';                                 // type yang sudah dihapus dikosongkan
-    }
+    lot.tipe = String(lot.tipe || '').trim();        // Model boleh teks bebas
+    lot.style = String(lot.style || '').trim();      // data lama belum punya style
+    lot.pindah = formatWaktuPendek(lot.pindah) ? lot.pindah : '';   // data lama belum punya waktu pindah
   }
 
   for (var j = 0; j < DATA.rak.length; j++) {
@@ -63,6 +62,15 @@ function cariLot(namaLot) {
     }
   }
   return null;
+}
+
+// Mencatat bahwa lotcode ini baru saja berpindah lokasi (waktu = sekarang).
+// Hanya mengubah data di memori; pemanggil yang menyimpannya.
+function catatPindah(namaLot) {
+  var lot = cariLot(namaLot);
+  if (lot) {
+    lot.pindah = new Date().toISOString();
+  }
 }
 
 // ----- Menyimpan (sekaligus mencatat waktu update) -----
@@ -110,11 +118,10 @@ function bersihkanDataLuar(r) {
       hasil.dibuang++;
       continue;
     }
-    var tipe = String(l.tipe || '');
-    if (KONFIG.TIPE.indexOf(tipe) === -1) {
-      tipe = '';
-    }
-    hasil.lots.push({ lot: String(l.lot).trim().toUpperCase(), qty: Number(l.qty) || 0, tipe: tipe });
+    var tipe = String(l.tipe || '').trim().slice(0, KONFIG.PANJANG_ISIAN);
+    var style = String(l.style || '').trim().slice(0, KONFIG.PANJANG_ISIAN);
+    var pindah = formatWaktuPendek(l.pindah) ? new Date(l.pindah).toISOString() : '';
+    hasil.lots.push({ lot: String(l.lot).trim().toUpperCase(), qty: Number(l.qty) || 0, tipe: tipe, style: style, pindah: pindah });
   }
 
   for (var j = 0; j < r.rows.length; j++) {

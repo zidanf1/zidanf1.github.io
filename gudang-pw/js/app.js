@@ -5,6 +5,7 @@
 
 // Menggambar ulang daftar lotcode dan tabel stok
 function tampilkanSemua() {
+  isiDaftarSaran();
   tampilkanDaftarLot();
   tampilkanTabel();
 }
@@ -27,7 +28,6 @@ function mulaiAplikasi() {
   rapikanData();
 
   // 2. Siapkan isi pilihan
-  buatPilihanTipe();
   buatPilihanTema();
 
   // 3. Tampilkan
