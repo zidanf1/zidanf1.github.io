@@ -6,7 +6,7 @@
 // ----- Data yang disimpan di browser -----
 var DATA = {
   lot: [],            // daftar lotcode.  Isi: { lot: 'ABC', qty: 10, tipe: 'GS', style: 'X1', pindah: '2026-10-30T07:00:00Z' }
-                      // tipe = Model. pindah = waktu terakhir lotcode berpindah lokasi (kosong = belum pernah)
+                      // tipe = Model. pindah = waktu lokasi lotcode terakhir berubah (ditempatkan / pindah / keluar dari rak)
   rak: [],            // daftar baris rak. Isi: { loc: 'A1-1', lot: 'ABC' }
   waktuUpdate: null   // waktu perubahan data terakhir (teks ISO)
 };
@@ -64,12 +64,31 @@ function cariLot(namaLot) {
   return null;
 }
 
-// Mencatat bahwa lotcode ini baru saja berpindah lokasi (waktu = sekarang).
-// Hanya mengubah data di memori; pemanggil yang menyimpannya.
-function catatPindah(namaLot) {
-  var lot = cariLot(namaLot);
-  if (lot) {
-    lot.pindah = new Date().toISOString();
+// Peta lokasi semua lotcode saat ini: { 'J07T184': 'A7-3', 'J08X001': 'A1-1, B2-4' }.
+// Lotcode yang tidak ada di baris rak mana pun tidak masuk peta (= tidak di rak).
+function petaLokasiLot() {
+  var peta = {};
+  for (var i = 0; i < DATA.rak.length; i++) {
+    var nama = DATA.rak[i].lot;
+    if (nama === '') {
+      continue;
+    }
+    peta[nama] = (peta[nama] ? peta[nama] + ', ' : '') + DATA.rak[i].loc;
+  }
+  return peta;
+}
+
+// Membandingkan lokasi lotcode sebelum dan sesudah sebuah perubahan (sebelum = hasil petaLokasiLot()
+// yang diambil sebelum perubahan). Lotcode yang lokasinya berubah (ditempatkan, pindah, atau keluar
+// dari rak) diberi waktu sekarang di field "pindah". Pemanggil yang menyimpan DATA.lot.
+function catatPerubahanLokasi(sebelum) {
+  var sesudah = petaLokasiLot();
+  var sekarang = new Date().toISOString();
+  for (var i = 0; i < DATA.lot.length; i++) {
+    var nama = DATA.lot[i].lot;
+    if ((sebelum[nama] || '') !== (sesudah[nama] || '')) {
+      DATA.lot[i].pindah = sekarang;
+    }
   }
 }
 

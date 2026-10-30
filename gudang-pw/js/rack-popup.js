@@ -37,21 +37,22 @@ function pilihLotEdit(nomor) {
 }
 
 // Menggambar daftar lotcode di popup.
-// Kotak "Cari lotcode" mencari di semua isian lotcode: lotcode, model, style, qty, dan tanggal pindah.
+// Kotak "Cari lotcode" mencari di semua isian lotcode: lotcode, model, style, qty, lokasi, dan tanggal pindah.
 function gambarDaftarLotEdit() {
   var kataCari = pecahKata(el('inputCariLot').value);
+  var peta = petaLokasiLot();
   var html = '<button class="item' + (POPUP.lot === '' ? ' aktif' : '') + '" onclick="pilihLotEdit(-1)">— Kosong (tanpa lotcode) —</button>';
 
   var jumlahCocok = 0;
   for (var i = 0; i < DATA.lot.length; i++) {
     var lot = DATA.lot[i];
-    if (kataCari.length > 0 && !cocokLot(lot, kataCari)) {
+    if (kataCari.length > 0 && !cocokLot(lot, kataCari, peta)) {
       continue;
     }
     jumlahCocok++;
     html += '<button class="item' + (lot.lot === POPUP.lot ? ' aktif' : '') + '" onclick="pilihLotEdit(' + i + ')">' +
             '<b>' + aman(lot.lot) + '</b>' +
-            '<span class="muted item-info">' + aman(teksInfoLot(lot)) + '<br>' + aman(teksPindah(lot)) + '</span></button>';
+            '<span class="muted item-info">' + aman(teksInfoLot(lot)) + '<br>' + aman(teksPindah(lot, peta)) + '</span></button>';
   }
 
   // Tidak ditemukan: tawarkan menambah lotcode baru di popup ini
@@ -151,24 +152,20 @@ function tutupEdit() {
 function simpanEdit() {
   var lokasi = el('pilihLokasi').value;
   var nomorTampil = POPUP.nomor;
-  var berpindah = false;   // true jika lotcode ini baru ditempatkan atau pindah lokasi
+  var sebelum = petaLokasiLot();   // untuk mendeteksi lotcode yang lokasinya berubah
 
   if (POPUP.baru) {
-    berpindah = (POPUP.lot !== '');
     DATA.rak.push({ loc: lokasi, lot: POPUP.lot });
     nomorTampil = DATA.rak.length - 1;
     kosongkanPencarian();   // supaya baris baru pasti terlihat
   } else {
-    var lama = DATA.rak[POPUP.nomor];
-    berpindah = (POPUP.lot !== '' && (lama.loc !== lokasi || lama.lot !== POPUP.lot));
-    lama.loc = lokasi;
-    lama.lot = POPUP.lot;
+    DATA.rak[POPUP.nomor].loc = lokasi;
+    DATA.rak[POPUP.nomor].lot = POPUP.lot;
   }
 
-  if (berpindah) {
-    catatPindah(POPUP.lot);                          // timestamp "terakhir pindah" pada lotcode
-    simpanData(KONFIG.KUNCI.lot, DATA.lot);
-  }
+  // Lotcode yang ditempatkan, pindah, atau keluar dari rak (diganti / dikosongkan) dicatat waktunya
+  catatPerubahanLokasi(sebelum);
+  simpanData(KONFIG.KUNCI.lot, DATA.lot);
   simpanRak();
   tutupEdit();
   tampilkanSemua();
@@ -191,7 +188,10 @@ function tambahBaris() {
 }
 
 function hapusBaris(nomor) {
+  var sebelum = petaLokasiLot();
   DATA.rak.splice(nomor, 1);
+  catatPerubahanLokasi(sebelum);   // lotcode di baris ini jadi "tidak di rak"
+  simpanData(KONFIG.KUNCI.lot, DATA.lot);
   simpanRak();
-  tampilkanTabel();
+  tampilkanSemua();
 }

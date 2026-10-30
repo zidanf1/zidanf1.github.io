@@ -45,6 +45,25 @@ function formatWaktuPendek(teksIso) {
     ' ' + dua(tanggal.getHours()) + ':' + dua(tanggal.getMinutes());
 }
 
+// Selisih waktu dalam bahasa sehari-hari: "baru saja", "5 menit lalu", "3 jam lalu", "2 hari lalu"
+function waktuLalu(teksIso) {
+  var tanggal = new Date(teksIso);
+  if (!teksIso || isNaN(tanggal.getTime())) {
+    return '';
+  }
+  var menit = Math.floor((Date.now() - tanggal.getTime()) / 60000);
+  if (menit < 1) {
+    return 'baru saja';
+  }
+  if (menit < 60) {
+    return menit + ' menit lalu';
+  }
+  if (menit < 60 * 24) {
+    return Math.floor(menit / 60) + ' jam lalu';
+  }
+  return Math.floor(menit / (60 * 24)) + ' hari lalu';
+}
+
 // Nomor urut lokasi, dipakai untuk mengurutkan. "Floor" selalu paling akhir.
 function nomorLokasi(lokasi) {
   if (lokasi === KONFIG.LABEL_FLOOR) {
