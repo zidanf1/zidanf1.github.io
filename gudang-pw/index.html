@@ -61,7 +61,8 @@
       <div class="card-body">
         <div class="row">
           <input id="inputLot" class="full" placeholder="LOTCODE" autocapitalize="characters" oninput="this.value = this.value.toUpperCase()">
-          <select id="inputTipe" class="full"></select>
+          <input id="inputModel" class="full" list="daftarModel" placeholder="Model" maxlength="30" autocomplete="off">
+          <input id="inputStyle" class="full" list="daftarStyle" placeholder="Style" maxlength="30" autocomplete="off">
           <input id="inputQty" type="number" min="0" placeholder="Qty" style="flex:1">
           <button class="btn utama" onclick="simpanLotcode()">Simpan</button>
         </div>
@@ -126,9 +127,26 @@
     <div class="modal-head"><b id="judulEdit">Form Data Rak</b><button class="btn" onclick="tutupEdit()">✕</button></div>
     <div class="modal-body">
       <label class="field">IDRak<select id="pilihLokasi"></select></label>
-      <div class="field">Lotcode</div>
-      <input id="inputCariLot" placeholder="Cari lotcode..." oninput="gambarDaftarLotEdit()">
+      <div class="baris-label">
+        <span>Lotcode</span>
+        <button class="btn" onclick="bukaTutupFormLotBaru()">+ Lotcode baru</button>
+      </div>
+      <input id="inputCariLot" placeholder="Cari lotcode, model, style, qty, tanggal..." oninput="gambarDaftarLotEdit()">
       <div id="daftarPilihLot" class="daftar-pilih"></div>
+
+      <!-- Form lotcode baru (sama dengan halaman Form Lotcode) -->
+      <div id="panelLotBaru" class="panel-baru" style="display:none">
+        <b>Lotcode baru</b>
+        <input id="popLot" placeholder="LOTCODE" autocapitalize="characters" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+        <input id="popModel" list="daftarModel" placeholder="Model" maxlength="30" autocomplete="off">
+        <input id="popStyle" list="daftarStyle" placeholder="Style" maxlength="30" autocomplete="off">
+        <input id="popQty" type="number" min="0" placeholder="Qty">
+        <div id="popPesan" class="muted"></div>
+        <div class="row">
+          <button class="btn" onclick="tutupFormLotBaru()">Batal</button>
+          <button class="btn utama" onclick="simpanLotDariPopup()">Simpan lotcode</button>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button id="tombolHapusEdit" class="btn merah" onclick="hapusDariEdit()">Hapus</button>
@@ -190,6 +208,10 @@
     </div>
   </div>
 </div>
+
+<!-- Daftar saran (autofill) untuk isian Model dan Style, diisi oleh js/lot-form.js -->
+<datalist id="daftarModel"></datalist>
+<datalist id="daftarStyle"></datalist>
 
 <!-- Program (JavaScript). Urutan penting: app.js harus paling akhir. -->
 <script src="js/config.js"></script>

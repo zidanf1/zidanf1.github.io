@@ -32,9 +32,9 @@ js/                     PROGRAM (urutan dimuat = urutan di bawah ini)
                           serta paket data bersama (buatPaket, bersihkanDataLuar, terapkanData)
   pages.js                Pindah halaman, menu dropdown, waktu update
   theme.js                Tema warna
-  lot-form.js             Halaman 1: Form Lotcode
+  lot-form.js             Form Lotcode (halaman 1 dan panel "Lotcode baru" di popup): simpan, saran autofill Model/Style
   stock-table.js          Halaman 2: Stok Rak (tabel, pencarian, urutan)
-  rack-popup.js           Popup Form Data Rak (ubah / tambah / hapus baris)
+  rack-popup.js           Popup Form Data Rak (ubah / tambah / hapus baris, tambah lotcode baru, catat waktu pindah)
   share.js                Teks WhatsApp dan gambar Screenshot
   sync.js                 Sinkronisasi data lewat JSONBin (opsional)
   backup.js               Cadangan: ekspor dan impor file .json
@@ -83,7 +83,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 
 | Ingin mengubah | Buka | Bagian |
 |---|---|---|
-| Menambah / menghapus type (GS, PS, ...) | `js/config.js` | `TIPE` |
+| Mengubah saran awal Model (GS, PS, ...) | `js/config.js` | `TIPE` (Model boleh diketik bebas; nilai yang pernah dipakai otomatis jadi saran) |
 | Menambah rak (misal C) atau mengubah jumlah baris/kolom | `js/config.js` | `HURUF_RAK`, `JUMLAH_BARIS`, `JUMLAH_KOLOM` |
 | Mengganti nama "Floor" | `js/config.js` | `LABEL_FLOOR` (nama lama taruh di `NAMA_LAMA_FLOOR`) |
 | Menambah / mengubah tema warna | `js/config.js` | `TEMA` |
@@ -106,7 +106,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 
 | Kunci | Isi |
 |---|---|
-| `gudang_lots` | Daftar lotcode: `[{ lot: "J07T184", qty: 5343, tipe: "GS" }]` |
+| `gudang_lots` | Daftar lotcode: `[{ lot: "J07T184", qty: 5343, tipe: "GS", style: "X1", pindah: "2026-10-30T07:02:00.000Z" }]`. `tipe` = Model. `pindah` = waktu lotcode terakhir ditempatkan / berpindah lokasi (kosong = belum pernah). |
 | `gudang_rows` | Daftar baris rak: `[{ loc: "A7-3", lot: "J07T184" }]` (`lot` kosong = rak kosong) |
 | `gudang_upd` | Waktu perubahan data terakhir (teks ISO) |
 | `gudang_tema` | Nama tema yang dipilih |
@@ -151,7 +151,10 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 
 - [ ] Buka halaman **Stok Rak** dan **Form Lotcode**, tidak ada yang keluar layar (coba lebar 320px).
 - [ ] Ketuk satu baris: popup **Form Data Rak** terbuka, Simpan / Batal / Hapus berfungsi.
-- [ ] Di popup, cari lotcode yang tidak ada: muncul tombol **Buka Form Lotcode**; setelah menyimpan lotcode, kembali ke popup.
+- [ ] Di popup, cari lotcode yang tidak ada: muncul tombol **+ Lotcode baru**; isi Lotcode, Model, Style (boleh kosong), Qty, tekan **Simpan lotcode**: lotcode langsung terpilih dan popup tetap terbuka.
+- [ ] Ketik di kolom Model / Style: muncul saran dari data yang sudah ada.
+- [ ] Tempatkan lotcode ke IDRak lalu Simpan: di Form Lotcode muncul `Pindah tanggal jam`. Simpan tanpa mengubah lokasi: waktunya tidak berubah.
+- [ ] Cari di popup dan di Stok Rak memakai lotcode, model, style, qty, atau tanggal pindah.
 - [ ] Semua pilihan **Urutkan** berfungsi, kolom pencarian berfungsi.
 - [ ] Menu: Stok Rak, Form Lotcode, Tema, Screenshot, Kirim WhatsApp.
 - [ ] Teks WhatsApp sesuai format, gambar Screenshot tampil.
@@ -194,7 +197,7 @@ mana pun di proyek ini, apalagi di GitHub yang bersifat publik.
   kembali, **data yang lebih baru yang dipakai** (dibandingkan lewat waktu update).
 - Saat sinkron otomatis pertama kali dinyalakan dan data HP berbeda dengan data JSONBin,
   aplikasi bertanya mana yang dipakai.
-- Data dari JSONBin diperiksa dulu sebelum dipakai (lokasi, type, dan angka yang tidak valid dibuang),
+- Data dari JSONBin diperiksa dulu sebelum dipakai (lokasi, tanggal, dan angka yang tidak valid dibuang),
   karena isi bin bisa diubah oleh siapa pun yang memegang kuncinya.
 
 ### Batasan yang perlu diketahui
@@ -223,9 +226,23 @@ terhapus (misalnya data situs dibersihkan, atau pindah HP).
   Simpan di tempat aman (Google Drive, atau kirim ke WhatsApp sendiri).
 - **Impor dari file:** memilih file cadangan. Aplikasi menampilkan ringkasan file dan data HP,
   lalu meminta konfirmasi. **Data di HP akan diganti** isi file, jadi Ekspor dulu bila ragu.
-- Isi file diperiksa dan dibersihkan sebelum dipakai (lokasi, type, dan angka yang tidak valid
+- Isi file diperiksa dan dibersihkan sebelum dipakai (lokasi, tanggal, dan angka yang tidak valid
   dibuang), dan jumlah data yang dibuang ditampilkan. File lebih dari 2 MB atau yang bukan
   file cadangan ditolak.
 - Impor dihitung sebagai perubahan baru: waktu update diperbarui, dan jika sinkron JSONBin
   otomatis aktif, hasil impor ikut dikirim.
 - Format file sama dengan isi bin JSONBin: `{ "app", "versi", "updated", "lots": [...], "rows": [...] }`.
+
+---
+
+## 11. Waktu pindah lotcode, Model, dan Style
+
+- **Waktu pindah** (`pindah`) dicatat otomatis saat popup Form Data Rak disimpan dan lotcode di baris itu
+  baru ditempatkan atau lokasinya (IDRak) berubah. Menyimpan tanpa mengubah lokasi tidak mengubah waktunya.
+  Lotcode yang belum pernah ditempatkan tampil `Pindah -`. Mengubah qty / model / style tidak mengubah waktu pindah.
+- **Model** dan **Style** adalah isian teks dengan saran otomatis (datalist). Saran berasal dari `KONFIG.TIPE`
+  (hanya Model) ditambah semua nilai yang sudah dipakai di data. Jika yang diketik sama dengan saran
+  (beda huruf besar/kecil saja), dipakai tulisan saran. Maksimal `KONFIG.PANJANG_ISIAN` karakter.
+- **Lotcode lama** otomatis disesuaikan: Style kosong, waktu pindah kosong. Model lama tetap dipertahankan.
+- **Form Lotcode** (menu) tetap ada untuk melihat daftar, mengubah (ketuk lotcode), dan menghapus.
+  Menambah lotcode baru sekarang cukup dari popup Form Data Rak.
