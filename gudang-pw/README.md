@@ -153,7 +153,7 @@ Data yang sudah tersimpan di HP tidak hilang saat aplikasi diperbarui.
 - [ ] Ketuk satu baris: popup **Form Data Rak** terbuka, Simpan / Batal / Hapus berfungsi.
 - [ ] Di popup, cari lotcode yang tidak ada: muncul tombol **+ Lotcode baru**; isi Lotcode, Model, Style (boleh kosong), Qty, tekan **Simpan lotcode**: lotcode langsung terpilih dan popup tetap terbuka.
 - [ ] Ketik di kolom Model / Style: muncul saran dari data yang sudah ada.
-- [ ] Tempatkan lotcode ke IDRak lalu Simpan: di Form Lotcode muncul `IDRak · baru saja`. Kosongkan baris itu: berubah jadi `Tidak di rak · baru saja`. Simpan tanpa mengubah lokasi: waktunya tidak berubah.
+- [ ] Tempatkan lotcode ke IDRak lalu Simpan: di Form Lotcode titiknya hijau dan tampil IDRak. Kosongkan baris itu: titik jadi abu dan muncul label `Tidak aktif baru saja`. Simpan tanpa mengubah lokasi: waktunya tidak berubah.
 - [ ] Cari di popup dan di Stok Rak memakai lotcode, model, style, qty, atau tanggal pindah.
 - [ ] Semua pilihan **Urutkan** berfungsi, kolom pencarian berfungsi.
 - [ ] Menu: Stok Rak, Form Lotcode, Tema, Screenshot, Kirim WhatsApp.
@@ -235,21 +235,29 @@ terhapus (misalnya data situs dibersihkan, atau pindah HP).
 
 ---
 
-## 11. Status lokasi lotcode, Model, dan Style
+## 11. Status lotcode (titik hijau / abu), Model, dan Style
 
-- Di Form Lotcode dan di daftar popup, tiap lotcode menampilkan **lokasinya sekarang dan sejak kapan**:
-  `A7-3 · 1 hari lalu` (ada di rak sejak 1 hari lalu) atau `Tidak di rak · 3 hari lalu`
-  (sudah tidak ada di rak sejak 3 hari lalu). Satuan: baru saja, menit, jam, hari.
-- Waktunya (`pindah`) dicatat otomatis setiap **lokasi lotcode berubah**: baru ditempatkan di IDRak, pindah IDRak,
+- Di daftar Form Lotcode dan di daftar lotcode pada popup, tiap lotcode diberi **titik status**:
+  **hijau** = masih ada di baris rak, **abu** = sudah tidak ada di baris rak mana pun.
+- Lotcode yang masih di rak menampilkan lokasinya (contoh `A7-3`). Lotcode yang sudah tidak di rak
+  menampilkan **label kecil** `Tidak aktif 2 hari` (satuan: baru saja, menit, jam, hari).
+- Waktunya (`pindah`) dicatat otomatis setiap **lokasi lotcode berubah**: ditempatkan, pindah IDRak,
   atau keluar dari rak (baris dikosongkan, diganti lotcode lain, atau dihapus). Lotcode baru dihitung
-  "Tidak di rak" sejak dibuat. Mengubah qty / model / style tidak mengubah waktunya.
+  tidak aktif sejak dibuat. Mengubah qty / model / style tidak mengubah waktunya.
   Pencatatan ada di `catatPerubahanLokasi()` (`js/data.js`), dipanggil dari `js/rack-popup.js`.
-- "Floor" dianggap sebagai lokasi (bukan "Tidak di rak"). Lotcode yang ada di beberapa baris
-  menampilkan semua lokasinya.
-- **Lotcode lama** (dari versi sebelumnya) belum punya waktu: tampil `waktu belum tercatat`
-  sampai lokasinya berubah satu kali.
+- Tampilan: `titikLot()` dan `keteranganLot()` di `js/lot-form.js`; warna titik di `css/components.css`
+  (`.status-hijau`, `.status-abu`, `.label-kecil`).
+- "Floor" dianggap sebagai lokasi (titik hijau). Lotcode di beberapa baris menampilkan semua lokasinya.
+- **Lotcode lama** (dari versi sebelumnya) belum punya waktu: jika tidak di rak, labelnya
+  `Tidak aktif waktu belum tercatat` sampai lokasinya berubah satu kali.
 - **Model** dan **Style** adalah isian teks dengan saran otomatis (datalist). Saran berasal dari `KONFIG.TIPE`
   (hanya Model) ditambah semua nilai yang sudah dipakai di data. Jika yang diketik sama dengan saran
   (beda huruf besar/kecil saja), dipakai tulisan saran. Maksimal `KONFIG.PANJANG_ISIAN` karakter.
 - **Form Lotcode** (menu) tetap ada untuk melihat daftar, mengubah (ketuk lotcode), dan menghapus.
   Menambah lotcode baru cukup dari popup Form Data Rak.
+
+## 12. Urutan WhatsApp dan Screenshot
+
+Teks WhatsApp (**Kirim WhatsApp**) dan gambar **Screenshot** diurutkan sama: **per lotcode dengan qty paling kecil
+di paling atas** (`urutkanUntukWA()` di `js/share.js`). Baris dengan lotcode yang sama tetap berkelompok dan urut IDRak;
+qty sama diurutkan menurut lotcode.
