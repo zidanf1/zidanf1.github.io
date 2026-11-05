@@ -37,7 +37,7 @@ function pilihLotEdit(nomor) {
 }
 
 // Menggambar daftar lotcode di popup.
-// Kotak "Cari lotcode" mencari di semua isian lotcode: lotcode, model, style, qty, lokasi, dan tanggal pindah.
+// Kotak "Cari lotcode" mencari di semua isian lotcode: lotcode, model, style, qty, lokasi / "tidak aktif", dan tanggal pindah.
 function gambarDaftarLotEdit() {
   var kataCari = pecahKata(el('inputCariLot').value);
   var peta = petaLokasiLot();
@@ -51,8 +51,8 @@ function gambarDaftarLotEdit() {
     }
     jumlahCocok++;
     html += '<button class="item' + (lot.lot === POPUP.lot ? ' aktif' : '') + '" onclick="pilihLotEdit(' + i + ')">' +
-            '<b>' + aman(lot.lot) + '</b>' +
-            '<span class="muted item-info">' + aman(teksInfoLot(lot)) + '<br>' + aman(teksPindah(lot, peta)) + '</span></button>';
+            '<span>' + titikLot(lot, peta) + '<b>' + aman(lot.lot) + '</b></span>' +
+            '<span class="muted item-info">' + aman(teksInfoLot(lot)) + '<br>' + keteranganLot(lot, peta) + '</span></button>';
   }
 
   // Tidak ditemukan: tawarkan menambah lotcode baru di popup ini

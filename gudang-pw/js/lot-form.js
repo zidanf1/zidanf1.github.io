@@ -80,19 +80,31 @@ function teksInfoLot(lot) {
   return teks + ' · Qty ' + lot.qty;
 }
 
-// Status lokasi + sejak kapan. peta = hasil petaLokasiLot() (diambil sekali per penggambaran daftar).
-// Contoh: "A7-3 · 1 hari lalu",  "Tidak di rak · 3 hari lalu",  "Tidak di rak · waktu belum tercatat"
-function teksPindah(lot, peta) {
-  var lokasi = peta[lot.lot] ? peta[lot.lot] : 'Tidak di rak';
+// Titik status di depan lotcode: hijau = masih ada di baris rak, abu = sudah tidak ada di baris rak.
+// peta = hasil petaLokasiLot() (diambil sekali per penggambaran daftar).
+function titikLot(lot, peta) {
+  var aktif = !!peta[lot.lot];
+  return '<span class="status-lot ' + (aktif ? 'status-hijau' : 'status-abu') + '" title="' +
+         (aktif ? 'Ada di rak' : 'Tidak ada di rak') + '"></span>';
+}
+
+// Keterangan kecil di bawah lotcode.
+// Masih di rak: lokasinya (contoh "A7-3").
+// Sudah tidak di rak: label "Tidak aktif 2 hari" (lama sejak keluar dari rak).
+function keteranganLot(lot, peta) {
+  if (peta[lot.lot]) {
+    return '<span class="muted">' + aman(peta[lot.lot]) + '</span>';
+  }
   var lalu = waktuLalu(lot.pindah);
-  return lokasi + ' · ' + (lalu !== '' ? lalu : 'waktu belum tercatat');
+  var lama = (lalu !== '') ? lalu.replace(' lalu', '') : 'waktu belum tercatat';
+  return '<span class="label-kecil">Tidak aktif ' + aman(lama) + '</span>';
 }
 
 // Apakah lotcode ini cocok dengan semua kata pencarian?
-// Yang dicari: lotcode, model, style, qty, lokasi / "tidak di rak", dan tanggal pindah.
+// Yang dicari: lotcode, model, style, qty, lokasi / "tidak aktif", dan tanggal pindah.
 function cocokLot(lot, kataCari, peta) {
   var teks = lot.lot + ' ' + lot.tipe + ' ' + lot.style + ' ' + lot.qty + ' ' +
-             (peta[lot.lot] ? peta[lot.lot] : 'tidak di rak') + ' ' + formatWaktuPendek(lot.pindah);
+             (peta[lot.lot] ? peta[lot.lot] : 'tidak aktif') + ' ' + formatWaktuPendek(lot.pindah);
   return cocokPencarian(teks, kataCari);
 }
 
@@ -152,11 +164,11 @@ function tampilkanDaftarLot() {
   var html = '';
   for (var i = 0; i < DATA.lot.length; i++) {
     var lot = DATA.lot[i];
-    // Kiri (ketuk untuk mengubah): lotcode, lalu model / style / qty, lalu lokasi dan sejak kapan. Kanan: tombol Hapus.
+    // Kiri (ketuk untuk mengubah): lotcode, lalu model / style / qty, lalu lokasi (atau label tidak aktif). Kanan: tombol Hapus.
     html += '<tr>';
-    html += '<td class="bisa-ketuk" onclick="isiFormDariLot(' + i + ')"><b>' + aman(lot.lot) + '</b>' +
+    html += '<td class="bisa-ketuk" onclick="isiFormDariLot(' + i + ')">' + titikLot(lot, peta) + '<b>' + aman(lot.lot) + '</b>' +
             '<div class="muted">' + aman(teksInfoLot(lot)) + '</div>' +
-            '<div class="muted">' + aman(teksPindah(lot, peta)) + '</div></td>';
+            '<div>' + keteranganLot(lot, peta) + '</div></td>';
     html += '<td><button class="btn merah" onclick="hapusLot(' + i + ')">Hapus</button></td>';
     html += '</tr>';
   }

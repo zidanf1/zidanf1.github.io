@@ -1,7 +1,7 @@
 // =====================================================
 // BAGIKAN: teks WhatsApp dan gambar Screenshot
-// Data yang dibagikan hanya baris yang terisi lotcode,
-// diurutkan menurut lotcode (lalu IDRak).
+// Data yang dibagikan hanya baris yang terisi lotcode.
+// Urutan (WhatsApp dan Screenshot sama): per lotcode, qty paling kecil di paling atas.
 // =====================================================
 
 // ----- Data yang dibagikan -----
@@ -24,6 +24,21 @@ function dataUntukBagikan() {
   return hasil;
 }
 
+// Urutan untuk WhatsApp dan Screenshot: data dikelompokkan per lotcode, kelompok dengan qty paling kecil di paling atas.
+// Qty sama: urut lotcode. Dalam satu lotcode: urut IDRak.
+function urutkanUntukWA(data) {
+  return data.slice().sort(function (a, b) {
+    if (a.qty !== b.qty) {
+      return a.qty - b.qty;
+    }
+    var banding = a.lot.localeCompare(b.lot, undefined, { numeric: true });
+    if (banding !== 0) {
+      return banding;
+    }
+    return nomorLokasi(a.loc) - nomorLokasi(b.loc);
+  });
+}
+
 // Waktu yang dicantumkan: waktu update terakhir, atau sekarang jika belum ada
 function waktuUntukBagikan() {
   if (DATA.waktuUpdate) {
@@ -40,9 +55,10 @@ function waktuUntukBagikan() {
 //   A1-1 . J07T123 Qty 5403
 //
 //   ===========================
+// Urutan: per lotcode, qty paling kecil di paling atas.
 function buatTeksWA() {
   var garis = '===========================';
-  var data = dataUntukBagikan();
+  var data = urutkanUntukWA(dataUntukBagikan());
   var teks = formatWaktu(waktuUntukBagikan()) + '\n' + garis + '\n';
   for (var i = 0; i < data.length; i++) {
     teks += data[i].loc + ' . ' + data[i].lot + ' Qty ' + data[i].qty + '\n';
@@ -122,7 +138,7 @@ function gambarBaris(g, data, nomor) {
 
 // Membuat seluruh gambar
 function buatGambar() {
-  var data = dataUntukBagikan();
+  var data = urutkanUntukWA(dataUntukBagikan());
   var jumlahBaris = Math.max(data.length, 1);
   var tinggi = GAMBAR.tinggiJudul + GAMBAR.tinggiHeader + jumlahBaris * GAMBAR.tinggiBaris + 14;
 
