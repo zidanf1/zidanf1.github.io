@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Warehouse</title><meta name="app-version" content="32"><meta name="theme-color" content="#3d7ab5">
+<title>Warehouse</title><meta name="app-version" content="37"><meta name="theme-color" content="#3d7ab5">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icons/icon-192.png">
 <style>
 :root{color-scheme:light dark;--card:#fff;--row:#d7dee7;--hov:#f3f7fb;--sub:#667;--bd:#c8d0da;--bl:#3d7ab5;--dk:#2c5f8a;--lt:#e9f0f8;--gr:#137a48;--bg:#f4f6f9;--tx:#1d2733;--ln:#dfe5ec}
@@ -37,7 +37,7 @@ td:first-child{font-weight:700}
 dialog{border:0;border-radius:10px;padding:18px;width:min(92vw,420px);box-shadow:0 10px 40px rgba(0,0,0,.3)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog h3{margin:0 0 12px}label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.acts .sp{flex:1}
 :focus-visible{outline:2px solid #1a5fb4;outline-offset:2px}
 dialog{padding:0;border-radius:14px;width:min(92vw,440px)}
@@ -55,6 +55,11 @@ dialog{padding:0;border-radius:14px;width:min(92vw,440px)}
 .btn.b{background:var(--bl);border-color:var(--bl);color:#fff}
 #q,#rakNew,#fModel,#fStyle,#fSpk{text-transform:uppercase}#q::placeholder,#rakNew::placeholder{text-transform:none}
 td,.o{text-transform:uppercase}.kos,.o span.k{text-transform:none}
+.ac{margin-top:5px;font-size:13px;line-height:1.8;color:var(--sub)}
+.sgt{cursor:pointer;color:var(--dk);font-weight:600;text-transform:uppercase;padding:3px 1px}.sgt+.sgt::before{content:"· ";color:var(--sub);font-weight:400}
+.sgt:hover,.sgt.sel{text-decoration:underline}
+#acRak{margin:0 0 6px}
+#fModel::placeholder,#fStyle::placeholder{text-transform:none}
 .lnk.red{color:#b3261e;margin-left:16px}
 dialog{background:var(--card);color:var(--tx)}
 :root{padding-bottom:env(safe-area-inset-bottom,0px)}.top{padding-top:calc(10px + env(safe-area-inset-top,0px))}
@@ -189,7 +194,7 @@ td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     <div class="seg" data-key="size"><button data-v="s">Kecil</button><button data-v="m">Normal</button><button data-v="l">Besar</button></div>
     <div class="mh2">Kepadatan baris</div>
     <div class="seg" data-key="dens"><button data-v="c">Rapat</button><button data-v="n">Nyaman</button></div>
-    <hr><small>Versi 32</small>
+    <hr><small>Versi 37</small>
   </div>
 </header>
 <div id="toasts" role="status" aria-live="polite"></div>
@@ -206,12 +211,12 @@ td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 <dialog id="dg"><form id="fm2" method="dialog">
   <div class="dh"><h3 id="dt">Tambah Baris</h3><button type="button" class="x" id="cx" aria-label="Tutup">✕</button></div>
   <div class="db">
-    <label for="rak">IDRak</label><select id="rak"></select><input id="rakNew" spellcheck="false" autocorrect="off" autocapitalize="characters" placeholder="ID rak baru, mis. A7-1" hidden autocomplete="off">
+    <label for="rak">IDRak</label><div class="ac" id="acRak" hidden></div><select id="rak"></select><input id="rakNew" spellcheck="false" autocorrect="off" autocapitalize="characters" placeholder="ID rak baru, mis. A7-1" hidden autocomplete="off">
     <label for="q">Lotcode</label><input id="q" spellcheck="false" autocorrect="off" autocapitalize="characters" placeholder="Cari lotcode..." autocomplete="off">
     <div id="opts" role="listbox"></div>
     <div id="lotMsg" class="msg" hidden></div>
     <button type="button" class="lnk" id="editLot" hidden>Ubah data lot</button><button type="button" class="lnk red" id="delLot" hidden>Hapus lotcode</button>
-    <div id="lotf" hidden><div class="row2"><div><label>Model</label><input id="fModel" spellcheck="false" autocorrect="off" autocapitalize="characters"></div><div><label>Style</label><input id="fStyle" spellcheck="false" autocorrect="off" autocapitalize="characters"></div></div>
+    <div id="lotf" hidden><div class="row2"><div><label>Model</label><input id="fModel" spellcheck="false" autocorrect="off" autocapitalize="characters" autocomplete="off" placeholder="Ketik / pilih model"><div class="ac" id="acModel" hidden></div></div><div><label>Style</label><input id="fStyle" spellcheck="false" autocorrect="off" autocapitalize="characters" autocomplete="off" placeholder="Ketik / pilih style"><div class="ac" id="acStyle" hidden></div></div></div>
     <div class="row2"><div><label>SPK</label><input id="fSpk" spellcheck="false" autocorrect="off" autocapitalize="characters"></div><div><label>Qty</label><input id="fQty" type="number" min="0"></div></div></div>
   </div>
   <div class="df"><button type="button" class="btn r" id="del">Hapus</button><span class="sp"></span><button type="button" class="btn" id="cx2">Batal</button><button class="btn b">Simpan</button></div>
@@ -270,5 +275,5 @@ td.lc{max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 <script>(function(){function whFix(msg){var ok=false;try{ok=sessionStorage.getItem('wh_fix')}catch(e){}
  if(!ok){try{sessionStorage.setItem('wh_fix','1')}catch(e){}
   Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0]).then(function(){location.reload()},function(){location.reload()});return}
- var d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:14px sans-serif';d.textContent=msg;document.body.appendChild(d)}if(window.WH_VER!=='32')whFix('app.js tidak sama versinya dengan index.html. Ganti keduanya dengan isi warehouse-final.zip terbaru, lalu tekan Ctrl+Shift+R.')})();</script>
+ var d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:14px sans-serif';d.textContent=msg;document.body.appendChild(d)}if(window.WH_VER!=='37')whFix('app.js tidak sama versinya dengan index.html. Ganti keduanya dengan isi warehouse-final.zip terbaru, lalu tekan Ctrl+Shift+R.')})();</script>
 </body></html>

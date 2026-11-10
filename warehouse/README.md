@@ -27,6 +27,8 @@ Aplikasi web gudang untuk memetakan **lokasi rak ↔ lotcode**. Bisa **diinstal 
   A1-3 > kosong
   ```
   Pesan panjang dibagi beberapa **bagian** (konstanta `WA_MAX`, bawaan 1200 karakter per pesan; baris pertama judul diulang dengan "(bagian i/N)", grup yang terpotong diberi "(lanjutan)"). Lot yang belum punya rak tidak ikut karena barisnya berbasis rak.
+- **Pilih IDRak lebih cepat (V37)**: di dialog *Tambah Baris*, daftar IDRak kini satu daftar urut tanpa judul kelompok (A1-8 langsung disusul A2-1). Di atasnya ada teks saran `Terakhir: <rak terakhir disimpan> · Kosong: <2 rak kosong>` (definisi "kosong" sama dengan hitungan *rak kosong* di Bagikan); ketuk untuk mengisi. Pilihan bawaan = rak terakhir dipakai (disimpan di `wh_lastrak`). Saran tidak tampil saat *Ubah Baris*. Kode: `fillRak()` / `rakSug()` di app.js, `#acRak` di index.html.
+- **Autofill Model & Style (V33)**: di dialog lot baru / ubah data lot, kolom **Model** dan **Style** menampilkan **saran teks biasa satu baris** (maks. 2, bukan dropdown; tiap kata bisa diketuk) dari nilai yang pernah tersimpan di tabel `items` (tanpa duplikat, lot yang sudah dihapus tidak ikut). Saran disaring saat mengetik, diurut dari yang paling sering dipakai; untuk **Style**, style yang pernah dipakai bersama Model yang sedang diisi ditaruh paling depan. Ketuk saran (atau ↑↓ + Enter) untuk mengisi; setelah memilih Model, fokus pindah ke Style. Nilai baru tetap bisa diketik bebas dan otomatis menjadi saran berikutnya. Kode: `acList()` / `acInit()` di app.js, gaya `.ac`/`.sgt` di index.html.
 - **Rak kosong** tampil sebagai label hijau `● kosong`.
 - **Tambah / ubah / hapus baris** lewat dialog (tombol `+ Baris`, atau ketuk baris).
 - **Pencarian** satu kolom di atas tabel (menggantikan filter dropdown lama): mencari di semua kolom, beberapa kata = AND, `KOSONG` = rak kosong, ID rak lengkap (mis. `A1-1`) hanya cocok persis (tidak ikut `A1-10`), tombol ✕ / Esc untuk menghapus.
@@ -218,6 +220,11 @@ Tugas berikutnya: <tuliskan di sini, mis. "buat sinkron realtime dua arah (READM
 
 | Versi | Perubahan |
 |---|---|
+| 37 | IDRak: daftar datar tanpa judul kelompok + teks saran Terakhir/Kosong, bawaan = rak terakhir dipakai. Tes: 106 pemeriksaan. |
+| 36 | Saran dibatasi 2 kata. |
+| 35 | Label "Saran:" dihapus, hanya kata sarannya yang tampil. |
+| 34 | Saran Model/Style diubah dari daftar kotak menjadi teks saran biasa satu baris. Tes: 97 pemeriksaan. |
+| 33 | Autofill Model & Style dari data lot yang pernah tersimpan (saran disaring, Style diprioritaskan sesuai Model). Tes: 97 pemeriksaan. |
 | 30 | Tabel Supabase `maps` diganti nama menjadi `rows` (aplikasi, realtime, tes, SQL). Migrasi: `alter table maps rename to rows;` + jadwalkan ulang pg_cron. Tes: 82 pemeriksaan. |
 | 29 | **100% online**: IndexedDB dihapus (dan dibersihkan otomatis dari perangkat lama), semua data langsung dari/ke Supabase; gagal simpan dibatalkan; offline = tulis ditolak. Tes: 82 pemeriksaan. |
 | 28 | Realtime WebSocket + notifikasi baris diperbarui/ditambahkan/dihapus; pilihan urutan Per IDRak / Per Lotcode di samping pencarian (menggantikan tombol Urutkan Rak). Tes: 73 pemeriksaan. |

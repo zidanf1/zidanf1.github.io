@@ -1,4 +1,4 @@
-window.WH_VER='32';
+window.WH_VER='37';
 function whFix(msg){var ok=false;try{ok=sessionStorage.getItem('wh_fix')}catch(e){}
  if(!ok){try{sessionStorage.setItem('wh_fix','1')}catch(e){}
   Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}):0,window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0]).then(function(){location.reload()},function(){location.reload()});return}
@@ -88,12 +88,17 @@ const similar=v=>Object.keys(I).some(k=>k.includes(v));
 const newOk=v=>!!v&&!I[v]&&(forceNew||!similar(v));
 const setLotF=it=>{$('#fModel').value=it?.model||'';$('#fStyle').value=it?.style||'';$('#fSpk').value=it?.spk||'';$('#fQty').value=it?.qty??''};
 const RAKS=[...['A','B'].flatMap(z=>Array.from({length:10},(_,i)=>i+1).flatMap(r=>Array.from({length:8},(_,k)=>z+r+'-'+(k+1)))),'STG']; // zona A/B x rak 1-10 x kolom 1-8, + STG (staging)
-function fillRak(sel){const r=[...new Set(RAKS.concat(M.map(m=>m.idrak),sel?[sel]:[]))].sort(nat),g={},o=[];
- r.forEach(x=>{const k=x.includes('-')?x.split('-')[0]:'';(g[k]=g[k]||[]).push(x)});
- const opt=x=>`<option>${esc(x)}</option>`;
- for(const k in g)o.push(k?`<optgroup label="Rak ${esc(k)}">${g[k].map(opt).join('')}</optgroup>`:g[k].map(opt).join(''));
- $('#rak').innerHTML=o.join('')+'<option value="__new">+ Rak baru…</option>';
- $('#rak').value=sel||r[0]||'__new';rakChg()}
+const lastRak=()=>{try{return localStorage.getItem('wh_lastrak')||''}catch{return''}};
+function fillRak(sel){const r=[...new Set(RAKS.concat(M.map(m=>m.idrak),sel?[sel]:[]))].sort(nat);   // daftar datar: A1-8 langsung disusul A2-1 (tanpa judul kelompok)
+ $('#rak').innerHTML=r.map(x=>`<option>${esc(x)}</option>`).join('')+'<option value="__new">+ Rak baru…</option>';
+ const l=sel?'':lastRak();$('#rak').value=sel||(r.includes(l)?l:r[0])||'__new';rakChg()}
+// teks saran di atas IDRak: rak terakhir dipakai + 2 rak kosong (definisi sama dengan "rak kosong" di Bagikan)
+function rakSug(show){const b=$('#acRak');if(!show){b.hidden=true;return}
+ const has=v=>[...$('#rak').options].some(o=>o.value===v),l=has(lastRak())?lastRak():'',f=new Set(M.filter(m=>m.lotcode).map(m=>m.idrak)),
+  k=[...new Set(M.filter(m=>!m.lotcode).map(m=>m.idrak))].filter(i=>!f.has(i)&&i!==l).sort(nat).slice(0,2),
+  sg=v=>`<span class="sgt" data-v="${esc(v)}">${esc(v)}</span>`;
+ b.innerHTML=(l?'<span>Terakhir:</span> '+sg(l):'')+(l&&k.length?' · ':'')+(k.length?'<span>Kosong:</span> '+k.map(sg).join(' '):'');b.hidden=!b.innerHTML}
+$('#acRak').addEventListener('click',e=>{const o=e.target.closest('.sgt');if(o){$('#rak').value=o.dataset.v;rakChg()}});
 const rakChg=()=>{$('#rakNew').hidden=$('#rak').value!=='__new'};
 $('#rak').onchange=rakChg;
 // semua isian teks otomatis HURUF BESAR (dipasang di tingkat dokumen agar selalu jalan lebih dulu)
@@ -123,9 +128,30 @@ $('#delLot').onclick=async()=>{const v=$('#q').value.trim(),it=I[v];if(!it||!nee
  await put('items',{...it,deleted:true,dirty:1,updated_at:now});
  for(const m of aff)await put('rows',{...m,lotcode:'',dirty:1,updated_at:now});
  $('#dg').close();await changed()};
+// ---- Autofill Model / Style: saran dari data lot yang pernah tersimpan ----
+const AC={fModel:'model',fStyle:'style'};
+function acList(id){const f=AC[id],t=$('#'+id).value.trim().toUpperCase(),mo=$('#fModel').value.trim().toUpperCase(),c={};
+ Object.values(I).forEach(it=>{const v=String(it[f]||'').trim().toUpperCase();if(!v)return;const o=c[v]=c[v]||{n:0,p:0};o.n++;if(f==='style'&&mo&&String(it.model||'').toUpperCase()===mo)o.p++});
+ const r=Object.keys(c).filter(v=>!t||v.includes(t));
+ if(r.length===1&&r[0]===t)return[];   // sudah terisi persis -> tak perlu saran
+ return r.sort((a,b)=>(!!c[b].p-!!c[a].p)||(b.startsWith(t)-a.startsWith(t))||(c[b].n-c[a].n)||nat(a,b)).map(v=>({v,n:c[v].n,p:c[v].p}))}
+function acInit(){Object.keys(AC).forEach(id=>{const el=$('#'+id),box=$('#ac'+id.slice(1));let sel=-1;
+ const mark=()=>[...box.children].forEach((o,i)=>o.classList.toggle('sel',i===sel));
+ const show=()=>{const l=acList(id).slice(0,2);sel=-1;box.innerHTML=l.map(x=>`<span class="sgt" data-v="${esc(x.v)}">${esc(x.v)}</span>`).join(' ');box.hidden=!l.length};
+ const pick=v=>{el.value=v;box.hidden=true;if(id==='fModel')$('#fStyle').focus()};
+ el.addEventListener('focus',show);el.addEventListener('input',show);
+ el.addEventListener('blur',()=>setTimeout(()=>{box.hidden=true},250));
+ el.addEventListener('keydown',e=>{if(box.hidden)return;const n=box.children.length;
+  if(e.key==='ArrowDown'){e.preventDefault();sel=(sel+1)%n;mark()}
+  else if(e.key==='ArrowUp'){e.preventDefault();sel=(sel-1+n)%n;mark()}
+  else if(e.key==='Enter'&&sel>=0){e.preventDefault();pick(box.children[sel].dataset.v)}});
+ box.addEventListener('mousedown',e=>e.preventDefault());
+ box.addEventListener('click',e=>{const o=e.target.closest('.sgt');if(o)pick(o.dataset.v)})})}
+acInit();
+const acHide=()=>document.querySelectorAll('.ac').forEach(b=>b.hidden=true);
 $('#editLot').onclick=()=>{setLotF(I[$('#q').value.trim()]);editLot=true;upd()};
-function openForm(m){cur=m||null;$('#dt').textContent=m?'Ubah Baris':'Tambah Baris';$('#del').hidden=!m;
- fillRak(m?m.idrak:'');$('#rakNew').value='';$('#q').value=m?m.lotcode:'';flt='';editLot=false;forceNew=false;lastV=null;wasNew=false;upd();$('#dg').showModal()}
+function openForm(m){acHide();cur=m||null;$('#dt').textContent=m?'Ubah Baris':'Tambah Baris';$('#del').hidden=!m;
+ fillRak(m?m.idrak:'');rakSug(!m);$('#rakNew').value='';$('#q').value=m?m.lotcode:'';flt='';editLot=false;forceNew=false;lastV=null;wasNew=false;upd();$('#dg').showModal()}
 $('#add').onclick=()=>openForm();$('#cx').onclick=$('#cx2').onclick=()=>$('#dg').close();
 $('#tb').onclick=e=>{const tr=e.target.closest('tr');if(tr)openForm(M.find(x=>x.id===tr.dataset.id))};
 $('#fm2').onsubmit=async e=>{
@@ -134,6 +160,7 @@ $('#fm2').onsubmit=async e=>{
  if(!rk){e.preventDefault();$('#rakNew').focus();return}
  {const v0=$('#q').value.trim();if(v0&&!I[v0]&&!newOk(v0)){e.preventDefault();const m=$('#lotMsg');m.textContent='Lotcode “'+v0+'” belum ada. Pilih dari daftar, atau tekan Enter untuk membuat lot baru.';m.hidden=false;return}}
  const now=new Date().toISOString();
+ try{localStorage.setItem('wh_lastrak',rk)}catch{}
  await put('rows',{id:cur?.id||crypto.randomUUID(),idrak:rk,lotcode:v,created:cur?.created||cur?.updated_at||now,updated_at:now,deleted:false,dirty:1});
  if(v&&(!I[v]||editLot))await put('items',{...(I[v]||{}),lotcode:v,model:$('#fModel').value.trim().toUpperCase(),style:$('#fStyle').value.trim().toUpperCase(),spk:$('#fSpk').value.trim().toUpperCase(),qty:+$('#fQty').value||0,updated_at:now,deleted:false,dirty:1});
  await changed();
